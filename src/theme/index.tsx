@@ -10,13 +10,15 @@ const Theme = {
     topBlur: "./assets/theme/black/Blur3.svg",
 
     toolbar_bg_color: "bg-[#212121]",
+    toolbar_bg: '#212121',
     toolbar_bg_selected_color: "bg-[#111111]",
 
     btn_bg_color: "bg-[#1D1D22]",
     btn_bg_selected_color: "bg-[#3C3C3C]",
-    btn_bg_selected_color_hover: "hover:bg-[#3C3C3C] hover:bg-opacity-50",
+    btn_bg_selected_color_hover: "hover:bg-[#3C3C3C] ",
 
     backgroundColor: "bg-[#0A0A0B]",
+    bg:'#0A0A0B'
   },
   solana: {
     hero: "./assets/theme/solana/Hero.svg",
@@ -29,13 +31,15 @@ const Theme = {
     herohead: "./assets/theme/solana/HeroHead.svg",
 
     toolbar_bg_color: "bg-[#050505]",
+    toolbar_bg: "#050505",
     toolbar_bg_selected_color: "bg-[#111111]",
 
     btn_bg_color: "bg-[#1D1D22]",
     btn_bg_selected_color: "bg-[#34404F]",
-    btn_bg_selected_color_hover: "hover:bg-[#34404F] hover:bg-opacity-50",
+    btn_bg_selected_color_hover: "hover:bg-[#34404F] ",
 
     backgroundColor: "bg-[#121216]",
+    bg:'#121216'
   },
   binance: {
     hero: "./assets/theme/binance/Hero.svg",
@@ -48,12 +52,14 @@ const Theme = {
     herohead: "./assets/theme/binance/HeroHead.svg",
 
     toolbar_bg_color: "bg-[#070604]",
+    toolbar_bg: "#070604",
     toolbar_bg_selected_color: "bg-[#111111]",
 
     btn_bg_color: "bg-[#19140E]",
     btn_bg_selected_color: "bg-[#3C2D0D]",
-    btn_bg_selected_color_hover: "hover:bg-[#3C2D0D] hover:bg-opacity-50",
+    btn_bg_selected_color_hover: "hover:bg-[#3C2D0D] ",
     backgroundColor: "bg-[#222019]",
+    bg:'#222019'
   },
 
   ethereum: {
@@ -67,13 +73,15 @@ const Theme = {
     herohead: "./assets/theme/ethereum/HeroHead.svg",
 
     toolbar_bg_color: "bg-[#040407]",
+    toolbar_bg: "#040407",
     toolbar_bg_selected_color: "bg-[#111111]",
 
     btn_bg_color: "bg-[#020305]",
     btn_bg_selected_color: "bg-[#222136]",
-    btn_bg_selected_color_hover: "hover:bg-[#222136] hover:bg-opacity-50",
+    btn_bg_selected_color_hover: "hover:bg-[#222136]",
 
     backgroundColor: "bg-[#0D111D]",
+    bg: "#0D111D",
   },
 };
 

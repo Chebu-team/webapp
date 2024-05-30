@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { DataContextType, DataProvider, useData } from "./context/DataContext";
+import { DataContextType, DataProvider, useData } from "@/context/DataContext";
 
 import "./globals.css";
 
@@ -8,11 +8,13 @@ import { headers } from "next/headers";
 
 import { cookieToInitialState } from "wagmi";
 
-import { config } from "./config";
-import Web3ModalProvider from "./context/WalletContext";
+import { config } from "../config";
+import Web3ModalProvider from "@/context/WalletContext";
 
 // solana wallet provider
-import SolanaWalletProvider from "./walletprovider/SolanaWalletProvider";
+import SolanaWalletProvider from "@/walletprovider/SolanaWalletProvider";
+import Socialbar from "@/components/Socialbar";
+import React from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -1,5 +1,5 @@
 import { propagateServerField } from "next/dist/server/lib/render-server";
-import { useData } from "../context/DataContext";
+import { useData } from "@/context/DataContext";
 
 interface NetworkModalProps {
   chain: string;
@@ -21,6 +21,7 @@ export default function NetworkModal(props: NetworkModalProps) {
   let ImageContent;
   let TitleContent;
   let ValueContent;
+
   if (props.chain === "ethereum") {
     ImageContent = (
       <img className="w-[42px] h-[42px]" src="./assets/chain/Ethereum.svg" />
@@ -50,32 +51,37 @@ export default function NetworkModal(props: NetworkModalProps) {
       <p className="text-[18px] text-[#CBCBCB] select-none">7,232.23 $</p>
     );
   }
+
   return (
     <>
-      <div className="choose-network-btn">
-        <div
-          className="flex flex-col gap-5 md:flex-row md:items-center relative"
-          onClick={() => {
-            setCurrentNetHandle(
-              props.chain === "ethereum"
-                ? 3
-                : props.chain === "solana"
-                ? 1
-                : props.chain === "binance"
-                ? 2
-                : 0
-            );
-            if (props.onClick) props.onClick();
-            // props.onClick();
-          }}
-        >
-          {ImageContent}
-          <div className="flex flex-col gap-3">
-            {TitleContent}
-            {ValueContent}
+      <div className='relative choose-network-wrapper'>
+        <div className='border-imitate absolute w-[calc(100%+1px)] h-[calc(100%+1px)] left-[50%] top-[50%] -translate-x-1/2 -translate-y-1/2 p-[1px] rounded-[32px] bg-gradient-to-b from-[#DBDBDB] to-[#39504E] hover:from-[#19FB9B] hover:to-[#8C01FA] transition-all box-border'></div>
+        <div className="choose-network-btn">
+          <div
+              className="flex flex-col gap-5 md:flex-row md:items-center relative"
+              onClick={() => {
+                setCurrentNetHandle(
+                    props.chain === "ethereum"
+                        ? 3
+                        : props.chain === "solana"
+                            ? 1
+                            : props.chain === "binance"
+                                ? 2
+                                : 0
+                );
+                if (props.onClick) props.onClick();
+                // props.onClick();
+              }}
+          >
+            {ImageContent}
+            <div className="flex flex-col gap-3">
+              {TitleContent}
+              {ValueContent}
+            </div>
           </div>
         </div>
       </div>
+
     </>
   );
 }

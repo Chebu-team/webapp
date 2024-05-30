@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import NetworkModal from "../utilities/NetworkModal";
-import { useData } from "../context/DataContext";
+import NetworkModal from "@/components/NetworkModal";
+import { useData } from "@/context/DataContext";
 import Link from "next/link";
 
 const NetSelectModal = ({ onCloseClicked }: any) => {

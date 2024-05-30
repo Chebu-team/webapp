@@ -1,13 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Navbar from "./components/Navbar";
+import React, {useState} from "react";
+import Navbar from "@/components/Navbar";
 import "../css/style.css";
-import NetworkModal from "./utilities/NetworkModal";
-import Footbar from "./components/Footbar";
-import Socialbar from "./components/Socialbar";
-import { DataContextType, DataProvider, useData } from "./context/DataContext";
-import NetSelectModal from "./pages/NetSelectModal";
-import Theme from "./theme";
+import NetworkModal from "@/components/NetworkModal";
+import Footbar from "@/components/Footbar";
+import Socialbar from "@/components/Socialbar";
+import { useData } from "@/context/DataContext";
+import NetSelectModal from "@/components/NetSelectModal";
+import Theme from "../theme";
 
 export default function App() {
   const [viewMode, setViewMode] = useState(true);
@@ -21,8 +21,8 @@ export default function App() {
 
   return (
     <div
-      className={`w-full min-h-[100vh] ${Theme[chainName[chain] as keyof typeof Theme].backgroundColor
-        }`}
+      style={{backgroundColor: Theme[chainName[chain] as keyof typeof Theme].bg}}
+      className={`w-full min-h-[100vh] ${Theme[chainName[chain] as keyof typeof Theme].backgroundColor}`}
     >
       {visibleMenuModal ? (
         <NetSelectModal
@@ -31,7 +31,7 @@ export default function App() {
           }}
         />
       ) : (
-        <div>
+        <div className='relative'>
           {/* Website Landing */}
           <div className="absolute top-0 left-0 pointer-events-none">
             <img src={Theme[chainName[chain] as keyof typeof Theme].effect} />
@@ -142,11 +142,11 @@ export default function App() {
                     <p className="text-[#CCC] pl-3">Your balance</p>
                     <div className="rounded-[16px] w-full bg-[#141515]">
                       <div className="flex flex-row justify-between items-center w-full text-[16px] p-5">
-                        <div className="flex flex-row">
+                        <div className="flex flex-row gap-[5px]">
                           <p className="text-[#E4E4E4]">2,323,322.42</p>
                           <p className="text-[#797489]">Chebu</p>
                         </div>
-                        <div className="flex flex-row">
+                        <div className="flex flex-row gap-[5px]">
                           <p className="text-[#E4E4E4]">55,476.874</p>
                           <p className="text-[#797489]">USD</p>
                         </div>
@@ -161,7 +161,6 @@ export default function App() {
                     <div className="w-full bg-[#FF2A2A] flex justify-center items-center p-3 cursor-pointer hover:bg-red-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out">
                       <p>SELL</p>
                     </div>
-
                     <div className="boost-middle-btn flex justify-center items-center">
                       <img
                         src={
@@ -173,15 +172,11 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            <div></div>
-
             <div className={`${viewMode ? "" : "md:hidden"}`}>
               <Footbar />
             </div>
           </div>
-
-          <div className={`${viewMode ? "md:p-[16px]" : "md:hidden"}`}>
+          <div className={`${viewMode ? "md:p-[26px]" : "md:hidden"}`}>
             <Socialbar />
           </div>
         </div>
