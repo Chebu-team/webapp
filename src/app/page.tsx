@@ -41,7 +41,6 @@ export default function App() {
               src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur2}
             />
           </div>
-
           {/* WebSite Container */}
           <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden ">
             <Navbar onMenuClicked={setVisibleMenuModal} />
@@ -153,7 +152,6 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-
                   <div className="w-full rounded-full flex flex-row text-white text-[16px] overflow-hidden border-[#0A0A0A] border-4 relative">
                     <div className="w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out">
                       <p>BUY</p>
