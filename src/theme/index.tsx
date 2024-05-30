@@ -78,7 +78,7 @@ const Theme = {
 
     btn_bg_color: "bg-[#020305]",
     btn_bg_selected_color: "bg-[#222136]",
-    btn_bg_selected_color_hover: "hover:bg-[#222136]",
+    btn_bg_selected_color_hover: "hover:bg-[#222137]",
 
     backgroundColor: "bg-[#0D111D]",
     bg: "#0D111D",
