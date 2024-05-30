@@ -21,7 +21,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Chebu",
   description: "Chebu - legendary coin return",
-  twitter: { card: "summary_large_image", site: "@site", creator: "@creator", "images": "https://example.com/og.png" },
+  twitter: { card: "summary_large_image", site: "@site", creator: "@creator", "images": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXbgyPF1s2pI9CiWKZTzdk5Mvne2pYut-GQ&s" },
   openGraph: {
     title: 'Next.js',
     description: 'The React Framework for the Web',
@@ -29,12 +29,12 @@ export const metadata: Metadata = {
     siteName: 'Next.js',
     images: [
       {
-        url: 'https://nextjs.org/og.png', // Must be an absolute URL
+        url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXbgyPF1s2pI9CiWKZTzdk5Mvne2pYut-GQ&s', // Must be an absolute URL
         width: 800,
         height: 600,
       },
       {
-        url: 'https://nextjs.org/og-alt.png', // Must be an absolute URL
+        url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXbgyPF1s2pI9CiWKZTzdk5Mvne2pYut-GQ&s', // Must be an absolute URL
         width: 1800,
         height: 1600,
         alt: 'My custom alt',
