@@ -30,7 +30,7 @@ export default function NetworkModal(props: NetworkModalProps) {
       <p className="text-[24px] text-white select-none">Ethereum</p>
     );
     ValueContent = (
-      <p className="text-[18px] text-[#CBCBCB] select-none">12,232.23 $</p>
+      <p className="text-[18px] text-[#CBCBCB] select-none truncate">12,232.23 $</p>
     );
   } else if (props.chain === "solana") {
     ImageContent = (
@@ -38,7 +38,7 @@ export default function NetworkModal(props: NetworkModalProps) {
     );
     TitleContent = <p className="text-[24px] text-white select-none">Solana</p>;
     ValueContent = (
-      <p className="text-[18px] text-[#CBCBCB] select-none">133,232.23 $</p>
+      <p className="text-[18px] text-[#CBCBCB] select-none truncate">133,232.23 $</p>
     );
   } else if (props.chain === "binance") {
     ImageContent = (
@@ -48,7 +48,7 @@ export default function NetworkModal(props: NetworkModalProps) {
       <p className="text-[24px] text-white select-none">Binance</p>
     );
     ValueContent = (
-      <p className="text-[18px] text-[#CBCBCB] select-none">7,232.23 $</p>
+      <p className="text-[18px] text-[#CBCBCB] select-none truncate">7,232.23 $</p>
     );
   }
 

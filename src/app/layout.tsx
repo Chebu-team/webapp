@@ -55,11 +55,12 @@ export default function RootLayout({
     <DataProvider>
       <html lang="en">
         <body>
+        <div className='h-[100vh]'>
           <SolanaWalletProvider>
-            <Web3ModalProvider initialState={initialState}>
-              {children}
-            </Web3ModalProvider>
-          </SolanaWalletProvider>
+          <Web3ModalProvider initialState={initialState}>
+            {children}
+          </Web3ModalProvider>
+        </SolanaWalletProvider></div>
         </body>
       </html>
     </DataProvider>

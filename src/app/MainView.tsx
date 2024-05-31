@@ -38,20 +38,21 @@ export default function App() {
                         <img src={Theme[chainName[chain] as keyof typeof Theme].effect} />
                     </div>
                     <div className="fixed bottom-0 right-0 pointer-events-none">
-                        <img
-                            src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur2}
+                        <img src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur2}
                         />
                     </div>
                     {/* WebSite Container */}
-                    <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden ">
+                    <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden flex flex-col">
                         <Navbar onMenuClicked={setVisibleMenuModal} />
-
-                        <div className="w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
+                        <div className="grow w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
                             <div className="">
                                 <img
+                                    className='md:h-auto h-[17vh]'
                                     src={Theme[chainName[chain] as keyof typeof Theme].title}
                                 />
-                                <img src={Theme[chainName[chain] as keyof typeof Theme].hero} />
+                                <img
+                                    className='md:h-auto h-[50vh]'
+                                     src={Theme[chainName[chain] as keyof typeof Theme].hero} />
                             </div>
                             <div className="hidden md:block cursor-pointer">
                                 {chain === 0 ? (
