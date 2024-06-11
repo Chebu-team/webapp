@@ -129,9 +129,7 @@ export default function App() {
                         />
                     </div>
                     {/* WebSite Container */}
-                    <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden flex flex-col">
-                        {/*<p className='text-white text-center p-5'>{isPending ? 'pending' : 'idle'}</p>*/}
-                        <p className=' fixed top-4 left-4 text-white text-center p-5'>{`${allowance}`}</p>
+                    <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden flex flex-col">f
                         <Navbar onMenuClicked={setVisibleMenuModal}/>
                         <div
                             className="grow w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
