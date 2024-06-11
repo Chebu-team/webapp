@@ -23,18 +23,17 @@ export default function App() {
     const { open } = useWeb3Modal()
     const [toastId, setToastId] = useState<any>(null)
     const [buyToastId, setBuyToastId] = useState<any>(0)
+    const [sellToastId, setSellToastId] = useState<any>(0)
 
     const balanceChebu = useBalance({
         address: walletAddress,
         token: "0xf35b8249Ef91317f06E67c887B38483089c18724"
     })
-
     const tradeToken = useReadContract({
         abi: config.chebuAbi,
         address: config.chebuAddress,
         functionName: 'tradeToken',
     })
-
     const balanceTradeToken = useBalance({
         address: walletAddress,
         token: tradeToken.data as any
@@ -49,20 +48,35 @@ export default function App() {
 
     const isAllowanceLoading = allowance === undefined && walletAddress !== undefined
 
-    const { writeContract: sellChebu, isPending,} = useWriteContract()
+    const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
     const { writeContract: approveTradeToken, isPending: approvePending, data: approveTradeTokenHash } = useWriteContract()
 
+    const {isSuccess: isSellDone } = useWaitForTransactionReceipt({
+        hash: sellHash,
+        pollingInterval: 1_000
+    })
     const {isSuccess: isApproveDone } = useWaitForTransactionReceipt({
         hash: approveTradeTokenHash,
         pollingInterval: 1_000
     })
-
     const {isSuccess: isBuyDone, isPending: pend, isFetched: fet } = useWaitForTransactionReceipt({
         hash: buyChebuHash,
         pollingInterval: 1_000
     })
 
+    useEffect(() => {
+        if(sellHash && !isSellDone){
+            setSellToastId(toast.loading('Transaction in progress'))
+        }
+        if(isSellDone) {
+            balanceTradeToken.refetch()
+            balanceChebu.refetch()
+            refetchAllowance()
+            toast.update(sellToastId || 0, { render: "Approved", type: "success", isLoading: false, autoClose: 2000 });
+            setSellToastId(null)
+        }
+    }, [isSellDone, sellHash]);
     useEffect(() => {
         if(approveTradeTokenHash && !isApproveDone){
             setToastId(toast.loading('Waiting for approve'))
@@ -130,7 +144,6 @@ export default function App() {
                     </div>
                     {/* WebSite Container */}
                     <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden flex flex-col">
-
                         <Navbar onMenuClicked={setVisibleMenuModal}/>
                         <div
                             className="grow w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
@@ -290,8 +303,8 @@ export default function App() {
                                                         args: [spendCount * config.decimalChebu]
                                                     })
                                                 }}
-                                                className="w-full bg-[#FF2A2A] flex justify-center items-center p-3 cursor-pointer hover:bg-red-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out">
-                                                <p>SELL</p>
+                                                className={`${isSellPending && 'opacity-30'} w-full bg-[#FF2A2A] flex justify-center items-center p-3 cursor-pointer hover:bg-red-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}>
+                                                <p>{isSellPending ? 'Loading...' : 'SELL'}</p>
                                             </button>
                                             <div className="boost-middle-btn flex justify-center items-center">
                                                 <img
