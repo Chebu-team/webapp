@@ -4,13 +4,17 @@ import { RefObject, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useData } from "@/context/DataContext";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWeb3Modal } from '@web3modal/wagmi/react'
 
-import { useAccount } from "wagmi";
+import {useAccount, useSwitchChain} from "wagmi";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
 
 import Theme from "../theme";
 import MobileMenu from "@/components/MobileMenu";
+
+import {mainnet, sepolia, bsc} from "wagmi/chains";
+import config from "@/config/general";
 
 interface props {
   onMenuClicked: any;
@@ -43,6 +47,24 @@ const Navbar = ({ onMenuClicked }: props) => {
   const [chooseNetSelected, setChooseNetSelected] = useState(false);
   const [connectWalletSelected, setConnectWalletSelected] = useState(false);
   const [menuClicked, setMenuClicked] = useState(false);
+  const { open, close } = useWeb3Modal()
+
+  const {switchChain} = useSwitchChain()
+
+  const changeChain = (name: string) => {
+    switch (name) {
+      case 'Solana' :
+        switchChain({chainId: sepolia.id})
+        break;
+      case 'Ethereum' :
+        switchChain({chainId: mainnet.id})
+        break;
+      case 'Binance' :
+        console.log('bsc')
+        switchChain({chainId:bsc.id})
+        break
+    }
+  }
 
   const onMobileMenuClose = () => {
     setMenuClicked(false)
@@ -160,7 +182,7 @@ const Navbar = ({ onMenuClicked }: props) => {
 
               <div className="relative md:hidden">
                 <div
-                    className={`rounded-full p-2 w-[202px] flex items-center active:bg-opacity-100  ${chooseNetSelected
+                    className={`rounded-full p-[6px] w-[202px] flex items-center active:bg-opacity-100  ${chooseNetSelected
                         ? Theme[chainName[chain] as keyof typeof Theme]
                             .btn_bg_selected_color
                         : Theme[chainName[chain] as keyof typeof Theme]
@@ -170,13 +192,10 @@ const Navbar = ({ onMenuClicked }: props) => {
                             .btn_bg_selected_color_hover
                     }`}
                 >
-                  <div
-                      className={`w-full flex items-center justify-center ${isConnected || publicKey ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  <button
+                      disabled={!isConnected}
+                      className={`w-full flex items-center justify-center ${!isConnected ? "cursor-not-allowed opacity-30" : "cursor-pointer"}`}
                       onClick={(e) => {
-                        if (isConnected || publicKey) {
-                          e.preventDefault();
-                          return;
-                        }
                         setChooseNetSelected(!chooseNetSelected);
                       }}
                   >
@@ -197,7 +216,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                           src="./assets/button/DownArrow.svg"
                       />
                     </div>
-                  </div>
+                  </button>
                 </div>
                 {!chooseNetSelected ? (
                     ""
@@ -209,9 +228,11 @@ const Navbar = ({ onMenuClicked }: props) => {
                       <div className="flex flex-col">
                         {chains.map((eachChain, index) => {
                           return (
-                              <div
+                              <button
                                   className={`flex flex-row gap-4 items-center p-[4.5px] cursor-pointer ${Theme[chainName[chain] as keyof typeof Theme].btn_bg_selected_color_hover} active:bg-opacity-100 rounded-full`}
                                   onClick={() => {
+                                    changeChain(eachChain)
+                                    console.log(eachChain)
                                     setCurrentNetHandle(index + 1);
                                     setChooseNetSelected(false);
                                   }}
@@ -221,7 +242,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                                 <p className="text-white text-[15px] select-none">
                                   {eachChain}
                                 </p>
-                              </div>
+                              </button>
                           );
                         })}
                       </div>
@@ -240,8 +261,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                             .btn_bg_selected_color_hover
                     } rounded-full p-[6px] w-[202px] md:w-[108px] flex items-center cursor-pointer active:bg-opacity-100`}
                     onClick={() => {
-                      setConnectWalletSelected(!connectWalletSelected);
-                      setChooseNetSelected(false);
+                      open()
                     }}
                 >
                   <div className="w-full flex items-center justify-center ">

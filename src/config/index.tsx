@@ -1,29 +1,28 @@
-import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
+import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
 
-import { cookieStorage, createStorage } from "wagmi";
-import { mainnet, bsc } from "wagmi/chains";
+import { cookieStorage, createStorage } from 'wagmi'
+import {bsc, mainnet, sepolia} from 'wagmi/chains'
 
-// Get projectId at https://cloud.walletconnect.com
-export const projectId = "867aecb21606a6f23e1a63177d4f457b";
+// Your WalletConnect Cloud project ID
+export const projectId = 'e9598a92a5c36fe45e0237961acc2c09'
 
-if (!projectId) throw new Error("Project ID is not defined");
-
+// Create a metadata object
 const metadata = {
-  name: "Web3Modal",
-  description: "Web3Modal Example",
-  url: "https://web3modal.com", // origin must match your domain & subdomain
-  icons: ["https://avatars.githubusercontent.com/u/37784886"],
-};
+  name: 'Chebu_test',
+  description: 'Web3Modal Example',
+  url: 'https://web3modal.com', // origin must match your domain & subdomain
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
+}
 
 // Create wagmiConfig
-const chains = [mainnet, bsc] as const;
+const chains = [mainnet, sepolia, bsc] as const
 export const config = defaultWagmiConfig({
   chains,
   projectId,
   metadata,
   ssr: true,
   storage: createStorage({
-    storage: cookieStorage,
+    storage: cookieStorage
   }),
-  //   ...wagmiOptions // Optional - Override createConfig parameters
-});
+  // ...wagmiOptions // Optional - Override createConfig parameters
+})
