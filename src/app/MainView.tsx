@@ -18,36 +18,42 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function App() {
     const [viewMode, setViewMode] = useState(true);
-    const { address: walletAddress, isConnecting, isDisconnected } = useAccount()
+    const { address: walletAddress, isConnecting, isDisconnected, chain: walletChain } = useAccount()
     const [spendCount, setSpendCount] = useState(0)
     const { open } = useWeb3Modal()
     const [toastId, setToastId] = useState<any>(null)
     const [buyToastId, setBuyToastId] = useState<any>(0)
     const [sellToastId, setSellToastId] = useState<any>(0)
 
+    useEffect(() => {
+        console.log(walletChain)
+    }, [walletChain]);
+
     const balanceChebu = useBalance({
         address: walletAddress,
-        token: "0xf35b8249Ef91317f06E67c887B38483089c18724"
+        token: config.chebuAddress
     })
+
     const tradeToken = useReadContract({
         abi: config.chebuAbi,
         address: config.chebuAddress,
         functionName: 'tradeToken',
     })
+
     const balanceTradeToken = useBalance({
         address: walletAddress,
         token: tradeToken.data as any
     })
 
-    const {data: allowance, refetch: refetchAllowance}: any = useReadContract({
+    const {data: allowance, refetch: refetchAllowance, isLoading: isAllowanceLoading, fetchStatus}: any = useReadContract({
         abi: config.tetherAbi,
         address: tradeToken.data as any,
         functionName: 'allowance',
-        args: ['0xfF8FA87d1A8e28b209747920C53e953452065797', config.chebuAddress]
+        args: [walletAddress, config.chebuAddress]
     })
 
-    const isAllowanceLoading = allowance === undefined && walletAddress !== undefined
-
+    // const isAllowanceLoading = allowance === undefined && walletAddress !== undefined
+    console.log(allowance, isAllowanceLoading, fetchStatus)
     const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
     const { writeContract: approveTradeToken, isPending: approvePending, data: approveTradeTokenHash } = useWriteContract()
@@ -60,7 +66,7 @@ export default function App() {
         hash: approveTradeTokenHash,
         pollingInterval: 1_000
     })
-    const {isSuccess: isBuyDone, isPending: pend, isFetched: fet } = useWaitForTransactionReceipt({
+    const {isSuccess: isBuyDone, isFetched: fet } = useWaitForTransactionReceipt({
         hash: buyChebuHash,
         pollingInterval: 1_000
     })
@@ -248,13 +254,13 @@ export default function App() {
                                             <div className="rounded-[16px] w-full bg-[#141515]">
                                                 <div
                                                     className="flex flex-row justify-between items-center w-full text-[16px] p-5">
-                                                    <div className="flex flex-row gap-[5px]">
+                                                    <div className="flex flex-row gap-[5px] w-1/2 truncate">
                                                         <p className="text-[#E4E4E4] truncate">{parseFloat(balanceChebu.data?.formatted || '0').toFixed(2)}</p>
-                                                        <p className="text-[#797489]">Chebu</p>
+                                                        <p className="text-[#797489] mr-[5px]">Chebu</p>
                                                     </div>
-                                                    <div className="flex flex-row gap-[5px]">
-                                                        <p className="text-[#E4E4E4]">{parseFloat(balanceTradeToken.data?.formatted || '0').toFixed(2)}</p>
-                                                        <p className="text-[#797489]">USD</p>
+                                                    <div className="flex flex-row gap-[5px] w-1/2 truncate">
+                                                        <p className="text-[#E4E4E4] truncate">{parseFloat(balanceTradeToken.data?.formatted || '0').toFixed(2)}</p>
+                                                        <p className="text-[#797489] mr-[5px]">USD</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -265,34 +271,34 @@ export default function App() {
                                                 className={`${isAllowanceLoading || isChebuBuyPending || approvePending ? 'opacity-30' : ''} w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}
                                                 disabled={isAllowanceLoading || isChebuBuyPending || approvePending}
                                                 onClick={() => {
-                                                if(!walletAddress) {
-                                                    open()
-                                                    return
-                                                }
-                                                if(allowance < spendCount * config.decimalTradeToken){
-                                                    approveTradeToken({
-                                                        abi: config.tetherAbi,
-                                                        address: tradeToken.data as any,
-                                                        functionName: 'approve',
-                                                        args: [
-                                                            config.chebuAddress,
-                                                            spendCount * config.decimalTradeToken
-                                                        ]
+                                                    if (!walletAddress) {
+                                                        open()
+                                                        return
+                                                    }
+                                                    if ((allowance || 0) < spendCount * config.decimalTradeToken) {
+                                                        approveTradeToken({
+                                                            abi: config.tetherAbi,
+                                                            address: tradeToken.data as any,
+                                                            functionName: 'approve',
+                                                            args: [
+                                                                config.chebuAddress,
+                                                                spendCount * config.decimalTradeToken
+                                                            ]
+                                                        })
+                                                        return;
+                                                    }
+                                                    buyChebu({
+                                                        abi: config.chebuAbi,
+                                                        address: config.chebuAddress,
+                                                        functionName: 'mintTokensForExactStable',
+                                                        args: [spendCount * config.decimalTradeToken]
                                                     })
-                                                    return;
-                                                }
-                                                buyChebu({
-                                                    abi: config.chebuAbi,
-                                                    address: config.chebuAddress,
-                                                    functionName: 'mintTokensForExactStable',
-                                                    args: [spendCount * config.decimalTradeToken]
-                                                })
-                                            }}>
+                                                }}>
                                                 <p>{isChebuBuyPending || approvePending ? 'Loading...' : 'BUY'}</p>
                                             </button>
                                             <button
-                                                onClick={()=> {
-                                                    if(!walletAddress) {
+                                                onClick={() => {
+                                                    if (!walletAddress) {
                                                         open()
                                                         return
                                                     }
@@ -313,7 +319,8 @@ export default function App() {
                                                     }
                                                 />
                                             </div>
-                                        </div></div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

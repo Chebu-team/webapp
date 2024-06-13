@@ -47,9 +47,30 @@ const Navbar = ({ onMenuClicked }: props) => {
   const [chooseNetSelected, setChooseNetSelected] = useState(false);
   const [connectWalletSelected, setConnectWalletSelected] = useState(false);
   const [menuClicked, setMenuClicked] = useState(false);
-  const { open, close } = useWeb3Modal()
+  const { address: walletAddress, chain: walletChain} = useAccount()
+  const { open } = useWeb3Modal()
+  const context = useData();
+  if (!context) {
+    throw new Error("useData must be used within a DataProvider");
+  }
+  const { chain, setChain } = context;
 
   const {switchChain} = useSwitchChain()
+
+  useEffect(() => {
+    if(walletChain?.name === 'Sepolia'){
+      setChain(1)
+      return
+    }
+    switch ( walletChain?.nativeCurrency.symbol) {
+      case 'ETH' :
+        setChain(3)
+        break;
+      case 'BNB' :
+        setChain(2)
+        break;
+    }
+  }, [walletChain]);
 
   const changeChain = (name: string) => {
     switch (name) {
@@ -60,7 +81,6 @@ const Navbar = ({ onMenuClicked }: props) => {
         switchChain({chainId: mainnet.id})
         break;
       case 'Binance' :
-        console.log('bsc')
         switchChain({chainId:bsc.id})
         break
     }
@@ -71,11 +91,6 @@ const Navbar = ({ onMenuClicked }: props) => {
   }
 
   const chainName = ["black", "solana", "binance", "ethereum"];
-  const context = useData();
-  if (!context) {
-    throw new Error("useData must be used within a DataProvider");
-  }
-  const { chain, setChain } = context;
   const { isConnected, isConnecting, address } = useAccount();
 
   const { connection } = useConnection();
@@ -193,8 +208,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                     }`}
                 >
                   <button
-                      disabled={!isConnected}
-                      className={`w-full flex items-center justify-center ${!isConnected ? "cursor-not-allowed opacity-30" : "cursor-pointer"}`}
+                      className={`w-full flex items-center justify-center cursor-pointer`}
                       onClick={(e) => {
                         setChooseNetSelected(!chooseNetSelected);
                       }}
@@ -232,7 +246,6 @@ const Navbar = ({ onMenuClicked }: props) => {
                                   className={`flex flex-row gap-4 items-center p-[4.5px] cursor-pointer ${Theme[chainName[chain] as keyof typeof Theme].btn_bg_selected_color_hover} active:bg-opacity-100 rounded-full`}
                                   onClick={() => {
                                     changeChain(eachChain)
-                                    console.log(eachChain)
                                     setCurrentNetHandle(index + 1);
                                     setChooseNetSelected(false);
                                   }}
