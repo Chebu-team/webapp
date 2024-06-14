@@ -6,7 +6,7 @@ import { useData } from "@/context/DataContext";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 
-import {useAccount, useSwitchChain} from "wagmi";
+import {useAccount, useReadContract, useSwitchChain} from "wagmi";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
 
@@ -49,6 +49,20 @@ const Navbar = ({ onMenuClicked }: props) => {
   const [menuClicked, setMenuClicked] = useState(false);
   const { address: walletAddress, chain: walletChain} = useAccount()
   const { open } = useWeb3Modal()
+
+  const {data: tradeToken} = useReadContract({
+    abi: config.chebuAbi,
+    address: config.chebuAddress,
+    functionName: 'tradeToken',
+  })
+
+  const {data: tvl}: any = useReadContract({
+    abi: config.tetherAbi,
+    address: tradeToken as any,
+    functionName: 'balanceOf',
+    args: [config.chebuAddress]
+  })
+
   const context = useData();
   if (!context) {
     throw new Error("useData must be used within a DataProvider");
@@ -123,7 +137,7 @@ const Navbar = ({ onMenuClicked }: props) => {
       };
     }, []);
   }
-
+  console.log('tvl', tvl)
   function setCurrentNetHandle(index: any) {
     setChain(index);
   }
@@ -191,7 +205,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                 </div>
                 <div className="w-full bg-[#111111] rounded-full flex items-center justify-center gap-1 ">
                   <p className="text-[#BBBBBB] text-[15px] select-none">TVL: </p>
-                  <p className="text-white text-[15px] select-none">1,23M $</p>
+                  <p className="text-white text-[15px] select-none">{`${(Number(tvl || 0)/config.decimalTradeToken).toFixed(0) }`} $</p>
                 </div>
               </div>
 
