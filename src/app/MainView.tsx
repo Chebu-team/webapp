@@ -19,15 +19,11 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function App() {
     const [viewMode, setViewMode] = useState(true);
     const { address: walletAddress, isConnecting, isDisconnected, chain: walletChain } = useAccount()
-    const [spendCount, setSpendCount] = useState(0)
+    const [spendCountChebu, setSpendCountChebu] = useState(0)
     const { open } = useWeb3Modal()
     const [toastId, setToastId] = useState<any>(null)
     const [buyToastId, setBuyToastId] = useState<any>(0)
     const [sellToastId, setSellToastId] = useState<any>(0)
-
-    useEffect(() => {
-        console.log(walletChain)
-    }, [walletChain]);
 
     const balanceChebu = useBalance({
         address: walletAddress,
@@ -40,20 +36,37 @@ export default function App() {
         functionName: 'tradeToken',
     })
 
+    const {data: conversionRateForOneDollar, isPending, status} = useReadContract({
+        abi: config.chebuAbi,
+        address: config.chebuAddress,
+        functionName: 'calcMintTokensForExactStable',
+        args:[config.decimalTradeToken],
+    })
+    console.log(conversionRateForOneDollar)
+    // @ts-ignore
+    const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
+
     const balanceTradeToken = useBalance({
         address: walletAddress,
         token: tradeToken.data as any
     })
 
-    const {data: allowance, refetch: refetchAllowance, isLoading: isAllowanceLoading, fetchStatus}: any = useReadContract({
+    const {data: allowanceData, refetch: refetchAllowance, isLoading: isAllowanceLoading, isFetching: isAllowanceFetching, status: allowanceStatus, isPending: isAllowancePending}: any = useReadContract({
         abi: config.tetherAbi,
         address: tradeToken.data as any,
         functionName: 'allowance',
         args: [walletAddress, config.chebuAddress]
     })
 
-    // const isAllowanceLoading = allowance === undefined && walletAddress !== undefined
-    console.log(allowance, isAllowanceLoading, fetchStatus)
+    const allowance = allowanceData || 0
+    const allowanceWithDecimals = Number(allowance)/config.decimalTradeToken
+
+    useEffect(() => {
+        console.log('logs', isAllowanceFetching, allowanceStatus, isPending)
+    }, [isAllowanceFetching, allowanceStatus, isPending])
+
+    const roundWithDecimals = (number: string) => Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100
+
     const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
     const { writeContract: approveTradeToken, isPending: approvePending, data: approveTradeTokenHash } = useWriteContract()
@@ -78,18 +91,17 @@ export default function App() {
         if(isSellDone) {
             balanceTradeToken.refetch()
             balanceChebu.refetch()
-            refetchAllowance()
-            toast.update(sellToastId || 0, { render: "Approved", type: "success", isLoading: false, autoClose: 2000 });
+            toast.update(sellToastId || 0, { render: "SELL Confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             setSellToastId(null)
         }
     }, [isSellDone, sellHash]);
+
     useEffect(() => {
         if(approveTradeTokenHash && !isApproveDone){
             setToastId(toast.loading('Waiting for approve'))
         }
         if(isApproveDone) {
-            refetchAllowance()
-            toast.update(toastId || 0, { render: "Approved", type: "success", isLoading: false, autoClose: 2000 });
+            toast.update(toastId || 0, { render: "Approve confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             setToastId(null)
         }
     }, [isApproveDone, approveTradeTokenHash]);
@@ -99,10 +111,9 @@ export default function App() {
             setBuyToastId(toast.loading('Transaction processing'))
         }
         if(isBuyDone){
-            toast.update(buyToastId || 0, { render: "Approved", type: "success", isLoading: false, autoClose: 2000 });
+            toast.update(buyToastId || 0, { render: "Purchase confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             balanceTradeToken.refetch()
             balanceChebu.refetch()
-            refetchAllowance()
         }
     }, [isBuyDone, buyChebuHash]);
 
@@ -111,15 +122,17 @@ export default function App() {
     if (!context) {
         throw new Error("useData must be used within a DataProvider");
     }
+
     const { chain, setChain } = context;
     const [visibleMenuModal, setVisibleMenuModal] = useState(false);
-
 
     return (
         <div
             style={{backgroundColor: Theme[chainName[chain] as keyof typeof Theme].bg}}
             className={`w-full min-h-[100vh] ${Theme[chainName[chain] as keyof typeof Theme].backgroundColor}`}
         >
+            {/*@ts-ignore*/}
+            {/*<p className='fixed top-[100px] left-1/3 z-50 text-white'>{status} {allowanceWithDecimals} {chebuToDollar}</p>*/}
             <ToastContainer
                 position="bottom-right"
                 autoClose={5000}
@@ -248,18 +261,18 @@ export default function App() {
                                         </tr>
                                     </table>
                                     <div className='flex flex-col gap-[4px]'>
-                                        <Counter count={spendCount} setCount={setSpendCount}/>
+                                        <Counter count={spendCountChebu} setCount={setSpendCountChebu}/>
                                         <div className='mb-[6px]'>
                                             <p className="text-[#CCC] pl-3 mb-[4px] block">Your balance</p>
                                             <div className="rounded-[16px] w-full bg-[#141515]">
                                                 <div
                                                     className="flex flex-row justify-between items-center w-full text-[16px] p-5">
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{parseFloat(balanceChebu.data?.formatted || '0').toFixed(2)}</p>
+                                                        <p className="text-[#E4E4E4] truncate">{roundWithDecimals(balanceChebu.data?.formatted || '0')}</p>
                                                         <p className="text-[#797489] mr-[5px]">Chebu</p>
                                                     </div>
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{parseFloat(balanceTradeToken.data?.formatted || '0').toFixed(2)}</p>
+                                                        <p className="text-[#E4E4E4] truncate">{roundWithDecimals(balanceTradeToken.data?.formatted || '0')}</p>
                                                         <p className="text-[#797489] mr-[5px]">USD</p>
                                                     </div>
                                                 </div>
@@ -268,33 +281,34 @@ export default function App() {
                                         <div
                                             className="w-full rounded-full flex flex-row text-white text-[16px] overflow-hidden border-[#0A0A0A] border-4 relative">
                                             <button
-                                                className={`${isAllowanceLoading || isChebuBuyPending || approvePending ? 'opacity-30' : ''} w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}
-                                                disabled={isAllowanceLoading || isChebuBuyPending || approvePending}
-                                                onClick={() => {
+                                                className={`${isAllowanceFetching || isChebuBuyPending || approvePending ? 'opacity-30' : ''} w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}
+                                                disabled={isAllowanceFetching || isChebuBuyPending || approvePending}
+                                                onClick={async () => {
                                                     if (!walletAddress) {
                                                         open()
                                                         return
                                                     }
-                                                    if ((allowance || 0) < spendCount * config.decimalTradeToken) {
+                                                    const {data: currAllowance} = await refetchAllowance()
+                                                    if (currAllowance < spendCountChebu/chebuToDollar*config.decimalTradeToken) {
                                                         approveTradeToken({
                                                             abi: config.tetherAbi,
                                                             address: tradeToken.data as any,
                                                             functionName: 'approve',
                                                             args: [
                                                                 config.chebuAddress,
-                                                                spendCount * config.decimalTradeToken
+                                                                Math.ceil(spendCountChebu/chebuToDollar * 100)/100 * config.decimalTradeToken
                                                             ]
                                                         })
-                                                        return;
+                                                        return
                                                     }
                                                     buyChebu({
                                                         abi: config.chebuAbi,
                                                         address: config.chebuAddress,
                                                         functionName: 'mintTokensForExactStable',
-                                                        args: [spendCount * config.decimalTradeToken]
+                                                        args: [Math.round(spendCountChebu/chebuToDollar * config.decimalTradeToken)]
                                                     })
                                                 }}>
-                                                <p>{isChebuBuyPending || approvePending ? 'Loading...' : 'BUY'}</p>
+                                                <p>{isChebuBuyPending || approvePending || isAllowanceFetching ? 'Loading...' : 'BUY'}</p>
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -306,7 +320,7 @@ export default function App() {
                                                         abi: config.chebuAbi,
                                                         address: config.chebuAddress,
                                                         functionName: 'burnExactTokensForStable',
-                                                        args: [spendCount * config.decimalChebu]
+                                                        args: [spendCountChebu * config.decimalChebu]
                                                     })
                                                 }}
                                                 className={`${isSellPending && 'opacity-30'} w-full bg-[#FF2A2A] flex justify-center items-center p-3 cursor-pointer hover:bg-red-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}>
