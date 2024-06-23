@@ -16475,10 +16475,10 @@ viem@^1.1.4:
     isows "1.0.3"
     ws "8.13.0"
 
-viem@^2.13.3, viem@>=2.0.0, viem@2.x:
-  version "2.13.3"
-  resolved "https://registry.npmjs.org/viem/-/viem-2.13.3.tgz"
-  integrity sha512-3tlwDRKHSelupFjbFMdUxF41f79ktyH2F9PAQ9Dltbs1DpdDlR1x+Ksa0th6qkyjjAbpDZP3F5nMTJv/1GVPdQ==
+viem@^2.15.1, viem@>=2.0.0, viem@2.x:
+  version "2.15.1"
+  resolved "https://registry.npmjs.org/viem/-/viem-2.15.1.tgz"
+  integrity sha512-Vrveen3vDOJyPf8Q8TDyWePG2pTdK6IpSi4P6qlvAP+rXkAeqRvwYBy9AmGm+BeYpCETAyTT0SrCP6458XSt+w==
   dependencies:
     "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"
@@ -16487,7 +16487,7 @@ viem@^2.13.3, viem@>=2.0.0, viem@2.x:
     "@scure/bip39" "1.2.1"
     abitype "1.0.0"
     isows "1.0.4"
-    ws "8.13.0"
+    ws "8.17.1"
 
 vlq@^1.0.0:
   version "1.0.1"
@@ -17083,6 +17083,11 @@ ws@8.13.0:
   version "8.13.0"
   resolved "https://registry.npmjs.org/ws/-/ws-8.13.0.tgz"
   integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==
+
+ws@8.17.1:
+  version "8.17.1"
+  resolved "https://registry.npmjs.org/ws/-/ws-8.17.1.tgz"
+  integrity sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==
 
 ws@8.9.0:
   version "8.9.0"

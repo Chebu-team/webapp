@@ -29,7 +29,7 @@
     "react-dom": "^18",
     "react-toastify": "^10.0.5",
     "sass": "^1.74.1",
-    "viem": "^2.13.3",
+    "viem": "^2.15.1",
     "wagmi": "^2.9.8"
   },
   "devDependencies": {

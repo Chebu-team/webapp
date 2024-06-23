@@ -1,8 +1,30 @@
 import React from 'react';
 import Link from "next/link";
 import NetworkModal from "@/components/NetworkModal";
+import {bsc, mainnet, sepolia} from "wagmi/chains";
+import {useSwitchChain} from "wagmi";
 
 const MobileMenu = ({chainName, onClose}:{chainName: string, onClose: () => void}) => {
+    const {switchChain} = useSwitchChain()
+    const changeChain = (name: string) => {
+        switch (name) {
+            case 'Solana' :
+                switchChain({chainId: sepolia.id})
+                break;
+            case 'Ethereum' :
+                switchChain({chainId: mainnet.id})
+                break;
+            case 'Binance' :
+                switchChain({chainId:bsc.id})
+                break
+        }
+    }
+
+    const onChainClick = (name: string) => {
+        changeChain(name)
+        onClose()
+    }
+
     return (
         <div className='fixed left-0 top-0 z-50 w-[100vw] h-[100vh] bg-[#121216] pt-[8px] px-[15px]'>
             <div className='relative flex w-full justify-center mb-[32px]'>
@@ -20,9 +42,9 @@ const MobileMenu = ({chainName, onClose}:{chainName: string, onClose: () => void
                     works</Link>
             </div>
             <div className="grid grid-cols-1 gap-[14px]">
-                <NetworkModal chain="ethereum" onClick={null}/>
-                <NetworkModal chain="solana" onClick={null}/>
-                <NetworkModal chain="binance" onClick={null}/>
+                <NetworkModal chain="ethereum" onClick={() => onChainClick('Ethereum')}/>
+                <NetworkModal chain="solana" onClick={() => onChainClick('Solana')}/>
+                <NetworkModal chain="binance" onClick={() => onChainClick('Binance')}/>
             </div>
         </div>
     );

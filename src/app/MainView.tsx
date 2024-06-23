@@ -8,13 +8,36 @@ import Socialbar from "@/components/Socialbar";
 import { useData } from "@/context/DataContext";
 import NetSelectModal from "@/components/NetSelectModal";
 import Theme from "../theme";
-import { useBalance, useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import {
+    useBalance,
+    useAccount,
+    useReadContract,
+    useWriteContract,
+    useWaitForTransactionReceipt,
+    useSwitchChain
+} from 'wagmi'
 
 import config from "@/config/general";
 import Counter from "@/components/Counter";
 import {useWeb3Modal} from "@web3modal/wagmi/react";
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import {strings} from "@/utils/strings";
+import {bsc, mainnet, sepolia} from "wagmi/chains";
+import {createPublicClient, http, parseAbiItem, parseEventLogs} from 'viem'
+import BigNumber from "bignumber.js";
+
+
+const client= createPublicClient({
+    chain: sepolia,
+    transport: http(),
+})
+
+const defaultTransaction = {
+    amountUSD: '0',
+    amountChebu: '0',
+    amountSol: '0'
+}
 
 export default function App() {
     const [viewMode, setViewMode] = useState(true);
@@ -24,11 +47,100 @@ export default function App() {
     const [toastId, setToastId] = useState<any>(null)
     const [buyToastId, setBuyToastId] = useState<any>(0)
     const [sellToastId, setSellToastId] = useState<any>(0)
+    const [deals, setDeals] = useState({sell:[defaultTransaction,defaultTransaction,defaultTransaction], buy:[defaultTransaction,defaultTransaction,defaultTransaction]})
+    const {switchChain} = useSwitchChain()
+
+    const getNormalValue = (num: bigint, decimals: number, format: number) => {
+        const x = new BigNumber(num.toString())
+        const y = new BigNumber(decimals)
+        return(x.div(y).toFormat(format))
+    }
+
+    const getDeals = async () => {
+        const blockNumber = await client.getBlockNumber()
+        const logs = await client.getLogs({
+            address: config.chebuAddress,
+            fromBlock: blockNumber - BigInt(30000),
+            toBlock: blockNumber
+        })
+
+        const res = parseEventLogs({
+            logs,
+            abi: config.chebuAbi,
+            eventName: 'Deal'
+        })
+
+       const normalizedRes = res.reduce((acc: any, item) => {
+           // @ts-ignore
+           if(item.args.assetIn === config.chebuAddress){
+               acc.sell.push({
+                   // @ts-ignore
+                   amountUSD: getNormalValue(item.args.amountOut, config.decimalTradeToken, 3),
+                   // @ts-ignore
+                   amountChebu: getNormalValue(item.args.amountIn, config.decimalChebu, 0),
+                   // @ts-ignore
+                   amountSol: getNormalValue(item.args.amountOut, config.decimalTradeToken*132, 5)
+               })
+           } else {
+               acc.buy.push({
+                   // @ts-ignore
+                   amountUSD: getNormalValue(item.args.amountIn, config.decimalTradeToken, 3),
+                   // @ts-ignore
+                   amountChebu: getNormalValue(item.args.amountOut, config.decimalChebu, 0),
+                   // @ts-ignore
+                   amountSol: getNormalValue(item.args.amountIn, config.decimalTradeToken*132, 5)
+               })
+           }
+           return acc
+       }, {sell: [], buy:[]})
+
+        normalizedRes.sell = normalizedRes.sell.sort((a: any,b: any) => {
+            if(a.amountUSD < b.amountUSD) return -1
+            if(a.amountUSD > b.amountUSD) return 1
+            return 0
+        }).reverse()
+        normalizedRes.buy = normalizedRes.buy.sort((a: any,b: any) => {
+            if(a.amountUSD < b.amountUSD) return -1
+            if(a.amountUSD > b.amountUSD) return 1
+            return 0
+        }).reverse()
+
+        return normalizedRes
+    }
+
+    useEffect(() => {
+        getDeals().then(item => {
+            setDeals(item)
+        })
+        const interval = setInterval(() => {
+            getDeals().then(item => {
+                setDeals(item)
+            })
+        }, 60*1000)
+        return () => {
+            clearInterval(interval)
+        }
+    }, []);
+
+    const changeChain = (name: string) => {
+        switch (name) {
+            case 'Solana' :
+                switchChain({chainId: sepolia.id})
+                break;
+            case 'Ethereum' :
+                switchChain({chainId: mainnet.id})
+                break;
+            case 'Binance' :
+                switchChain({chainId:bsc.id})
+                break
+        }
+    }
 
     const balanceChebu = useBalance({
         address: walletAddress,
         token: config.chebuAddress
     })
+
 
     const tradeToken = useReadContract({
         abi: config.chebuAbi,
@@ -42,7 +154,6 @@ export default function App() {
         functionName: 'calcMintTokensForExactStable',
         args:[config.decimalTradeToken],
     })
-    console.log(conversionRateForOneDollar)
     // @ts-ignore
     const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
 
@@ -61,11 +172,7 @@ export default function App() {
     const allowance = allowanceData || 0
     const allowanceWithDecimals = Number(allowance)/config.decimalTradeToken
 
-    useEffect(() => {
-        console.log('logs', isAllowanceFetching, allowanceStatus, isPending)
-    }, [isAllowanceFetching, allowanceStatus, isPending])
-
-    const roundWithDecimals = (number: string) => Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100
+    const roundWithDecimals = (number: string) => (Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100).toString()
 
     const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
@@ -103,6 +210,12 @@ export default function App() {
         if(isApproveDone) {
             toast.update(toastId || 0, { render: "Approve confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             setToastId(null)
+            buyChebu({
+                abi: config.chebuAbi,
+                address: config.chebuAddress,
+                functionName: 'mintTokensForExactStable',
+                args: [Math.round(spendCountChebu/chebuToDollar * config.decimalTradeToken)]
+            })
         }
     }, [isApproveDone, approveTradeTokenHash]);
 
@@ -177,7 +290,12 @@ export default function App() {
                             </div>
                             <div className="hidden md:block cursor-pointer">
                                 {chain === 0 ? (
-                                    <div onClick={() => setVisibleMenuModal(true)}>
+                                    <div onClick={() => {
+                                        window.scrollTo({
+                                        top: document.body.scrollHeight,
+                                        behavior: 'smooth'
+                                    });
+                                    }}>
                                         <p className="text-[#BBBBBB]">Choose Network</p>
                                     </div>
                                 ) : (
@@ -197,11 +315,11 @@ export default function App() {
                                 )}
                             </div>
                             {chain === 0 ? (
-                                <div className="flex flex-col gap-3 md:hidden pr-[50px]">
-                                    <p className="text-[32px] text-white select-none">
+                                <div className="flex flex-col gap-3 pr-[50px] md:hidden md:pr-0">
+                                    <p className="text-[32px] text-white select-none md:hidden">
                                         Choose your Chebu
                                     </p>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:grid md:gap-[14px] md:w-full">
                                         <NetworkModal chain="ethereum" onClick={null}/>
                                         <NetworkModal chain="solana" onClick={null}/>
                                         <NetworkModal chain="binance" onClick={null}/>
@@ -219,45 +337,60 @@ export default function App() {
                                             <td className="text-right">Amount (USD)</td>
                                         </tr>
                                         <tr className="table-row-item-red">
-                                            <td className="text-left">0.0001</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">2.421</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.sell[3]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.sell[3]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.sell[3]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-red">
-                                            <td className="text-left">0.0002</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.431</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.sell[2]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.sell[2]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.sell[2]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-red">
-                                            <td className="text-left">0.0003</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.435</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.sell[1]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.sell[1]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.sell[1]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-selected">
-                                            <td className="text-left">0.0003</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.435</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.sell[0]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.sell[0]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.sell[0]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-green">
-                                            <td className="text-left">0.0002</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.423</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.buy[0]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.buy[0]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.buy[0]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-green">
-                                            <td className="text-left">0.00025</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.423</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.buy[1]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.buy[1]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.buy[1]?.amountUSD || 0}</td>
                                         </tr>
-
                                         <tr className="table-row-item-green">
-                                            <td className="text-left">0.000321</td>
-                                            <td className="text-center">1,000,000.23</td>
-                                            <td className="text-right text-white">3.423</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-left">{deals.buy[2]?.amountSol || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-center">{deals.buy[2]?.amountChebu || 0}</td>
+                                            {/*@ts-ignore*/}
+                                            <td className="text-right text-white">{deals.buy[2]?.amountUSD || 0}</td>
                                         </tr>
                                     </table>
                                     <div className='flex flex-col gap-[4px]'>
@@ -268,11 +401,11 @@ export default function App() {
                                                 <div
                                                     className="flex flex-row justify-between items-center w-full text-[16px] p-5">
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{roundWithDecimals(balanceChebu.data?.formatted || '0')}</p>
+                                                        <p className="text-[#E4E4E4] truncate">{strings.addCommas(roundWithDecimals(balanceChebu.data?.formatted || '0'))}</p>
                                                         <p className="text-[#797489] mr-[5px]">Chebu</p>
                                                     </div>
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{roundWithDecimals(balanceTradeToken.data?.formatted || '0')}</p>
+                                                        <p className="text-[#E4E4E4] truncate">{strings.addCommas(roundWithDecimals(balanceTradeToken.data?.formatted || '0'))}</p>
                                                         <p className="text-[#797489] mr-[5px]">USD</p>
                                                     </div>
                                                 </div>
@@ -289,14 +422,14 @@ export default function App() {
                                                         return
                                                     }
                                                     const {data: currAllowance} = await refetchAllowance()
-                                                    if (currAllowance < spendCountChebu/chebuToDollar*config.decimalTradeToken) {
+                                                    if (currAllowance < spendCountChebu / chebuToDollar * config.decimalTradeToken) {
                                                         approveTradeToken({
                                                             abi: config.tetherAbi,
                                                             address: tradeToken.data as any,
                                                             functionName: 'approve',
                                                             args: [
                                                                 config.chebuAddress,
-                                                                Math.ceil(spendCountChebu/chebuToDollar * 100)/100 * config.decimalTradeToken
+                                                                Math.ceil(spendCountChebu / chebuToDollar * 100) / 100 * config.decimalTradeToken
                                                             ]
                                                         })
                                                         return
@@ -305,7 +438,7 @@ export default function App() {
                                                         abi: config.chebuAbi,
                                                         address: config.chebuAddress,
                                                         functionName: 'mintTokensForExactStable',
-                                                        args: [Math.round(spendCountChebu/chebuToDollar * config.decimalTradeToken)]
+                                                        args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
                                                     })
                                                 }}>
                                                 <p>{isChebuBuyPending || approvePending || isAllowanceFetching ? 'Loading...' : 'BUY'}</p>
@@ -340,6 +473,11 @@ export default function App() {
                         </div>
                         <div className={`${viewMode ? "" : "md:hidden"}`}>
                             <Footbar/>
+                            {chain === 0 && <div className="hidden md:grid gap-[14px] p-[16px]">
+                                <NetworkModal chain="ethereum" onClick={() => changeChain('Ethereum')}/>
+                                <NetworkModal chain="solana" onClick={() => changeChain('Solana')}/>
+                                <NetworkModal chain="binance" onClick={() => changeChain('Binance')}/>
+                            </div>}
                         </div>
                     </div>
                     <div className={`${viewMode ? "md:p-[26px]" : "md:hidden"}`}>

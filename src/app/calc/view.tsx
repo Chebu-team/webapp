@@ -14,7 +14,6 @@ const View = () => {
     useEffect(() => {
         if(!res.data) return
         // @ts-ignore
-        console.log(res.data[1])
     }, [res.status])
     return (
         <div>

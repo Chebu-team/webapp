@@ -234,6 +234,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                               : `./assets/chain/${chains[chain - 1]}.svg`
                         }
                     />
+
                     <p className="text-[14px] text-white flex-grow text-center select-none">
                       {chain === 0 ? "Choose net" : chains[chain - 1]}
                     </p>
