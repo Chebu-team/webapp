@@ -22,7 +22,6 @@ import Counter from "@/components/Counter";
 import {useWeb3Modal} from "@web3modal/wagmi/react";
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {strings} from "@/utils/strings";
 import {bsc, mainnet, sepolia} from "wagmi/chains";
 import {createPublicClient, http, parseAbiItem, parseEventLogs} from 'viem'
 import BigNumber from "bignumber.js";
