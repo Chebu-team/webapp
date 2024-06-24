@@ -1,27 +1,26 @@
 import MainView from './MainView'
+import type {Metadata} from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
+    title: "Chebu",
+    description: "Chebu - legendary coin return",
+    twitter: { card: "summary_large_image", site: "@site", creator: "@creator", images: "https://res.cloudinary.com/dnb0lohxk/image/upload/fl_preserve_transparency/v1719205050/cheba_1_ebztht.jpg?_s=public-apps" },
     openGraph: {
-        title: 'Next.js',
-        description: 'The React Framework for the Web',
-        url: 'https://nextjs.org',
-        siteName: 'Next.js',
+        title: 'Chebu',
+        description: 'Chebu - legendary coin return',
+        url: 'https://chebu.vercel.app/',
+        siteName: 'Chebu',
         images: [
             {
-                url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXbgyPF1s2pI9CiWKZTzdk5Mvne2pYut-GQ&s', // Must be an absolute URL
+                url: 'https://res.cloudinary.com/dnb0lohxk/image/upload/fl_preserve_transparency/v1719205050/cheba_1_ebztht.jpg?_s=public-apps', // Must be an absolute URL
                 width: 800,
                 height: 600,
-            },
-            {
-                url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXbgyPF1s2pI9CiWKZTzdk5Mvne2pYut-GQ&s', // Must be an absolute URL
-                width: 1800,
-                height: 1600,
                 alt: 'My custom alt',
-            },
+            }
         ],
         locale: 'en_US',
         type: 'website',
     },
-}
+};
 
 export default MainView
