@@ -156,6 +156,8 @@ export default function App() {
     })
     // @ts-ignore
     const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
+    // @ts-ignore
+    const chebuToDollar2 = conversionRateForOneDollar ? BigNumber(conversionRateForOneDollar[0]).dividedBy(BigInt(config.decimalChebu)).plus(BigNumber(conversionRateForOneDollar[1]).dividedBy(BigNumber(config.decimalChebu))) : BigNumber(4715)
 
     const balanceTradeToken = useBalance({
         address: walletAddress,
@@ -173,6 +175,7 @@ export default function App() {
     const allowanceWithDecimals = Number(allowance)/config.decimalTradeToken
 
     const roundWithDecimals = (number: string) => (Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100).toString()
+    const roundWithDecimals2 = (number: string) => (Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100).toString()
 
     const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
@@ -214,7 +217,7 @@ export default function App() {
                 abi: config.chebuAbi,
                 address: config.chebuAddress,
                 functionName: 'mintTokensForExactStable',
-                args: [Math.round(spendCountChebu/chebuToDollar * config.decimalTradeToken)]
+                args: [BigNumber(spendCountChebu).dividedBy(BigNumber(chebuToDollar2).multipliedBy(BigNumber(config.decimalTradeToken)))]
             })
         }
     }, [isApproveDone, approveTradeTokenHash]);
@@ -401,11 +404,13 @@ export default function App() {
                                                 <div
                                                     className="flex flex-row justify-between items-center w-full text-[16px] p-5">
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{strings.addCommas(roundWithDecimals(balanceChebu.data?.formatted || '0'))}</p>
+                                                        {/*@ts-ignore*/}
+                                                        <p className="text-[#E4E4E4] truncate">{balanceChebu.data?.value ? BigNumber(balanceChebu.data.value).div(BigNumber(config.decimalChebu)).toFormat(0) : 0}</p>
                                                         <p className="text-[#797489] mr-[5px]">Chebu</p>
                                                     </div>
                                                     <div className="flex flex-row gap-[5px] w-1/2 truncate">
-                                                        <p className="text-[#E4E4E4] truncate">{strings.addCommas(roundWithDecimals(balanceTradeToken.data?.formatted || '0'))}</p>
+                                                        {/*@ts-ignore*/}
+                                                        <p className="text-[#E4E4E4] truncate">{balanceTradeToken.data?.value ? BigNumber(balanceTradeToken.data.value).div(BigNumber(config.decimalTradeToken)).toFormat(2) : 0}</p>
                                                         <p className="text-[#797489] mr-[5px]">USD</p>
                                                     </div>
                                                 </div>

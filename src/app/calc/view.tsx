@@ -7,7 +7,7 @@ const View = () => {
 
     const res = useReadContract({
         abi: config.chebuAbi,
-        address: '0xf35b8249Ef91317f06E67c887B38483089c18724',
+        address: config.chebuAddress,
         functionName: 'calcMintTokensForExactStable',
         args:[100000000],
     })
