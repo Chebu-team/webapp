@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "Chebu",
   description: "Chebu - legendary coin return",
   twitter: { card: "summary_large_image", site: "@site", creator: "@creator", images: "https://res.cloudinary.com/dnb0lohxk/image/upload/fl_preserve_transparency/v1719205050/cheba_1_ebztht.jpg?_s=public-apps" },
+  icons: {
+    icon: '/favicon.ico',
+  },
   openGraph: {
     title: 'Chebu',
     description: 'Chebu - legendary coin return',

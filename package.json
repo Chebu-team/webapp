@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm .next -r && next dev"
   },
   "dependencies": {
     "@metamask/logo": "^3.1.2",

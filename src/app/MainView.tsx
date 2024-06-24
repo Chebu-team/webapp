@@ -281,21 +281,24 @@ export default function App() {
                         <Navbar onMenuClicked={setVisibleMenuModal}/>
                         <div
                             className="grow w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
-                            <div className="">
-                                <img
-                                    className='md:h-auto h-[17vh]'
-                                    src={Theme[chainName[chain] as keyof typeof Theme].title}
-                                />
-                                <img
-                                    className='md:h-auto h-[50vh]'
-                                    src={Theme[chainName[chain] as keyof typeof Theme].hero}/>
+                            <div className='flex justify-center grow'>
+                                <div className=''>
+                                    <img
+                                        className='md:h-auto h-[17vh]'
+                                        src={Theme[chainName[chain] as keyof typeof Theme].title}
+                                    />
+                                    <img
+                                        className='md:h-auto h-[50vh]'
+                                        src={Theme[chainName[chain] as keyof typeof Theme].hero}
+                                    />
+                                </div>
                             </div>
                             <div className="hidden md:block cursor-pointer">
                                 {chain === 0 ? (
                                     <div onClick={() => {
                                         window.scrollTo({
-                                        top: document.body.scrollHeight,
-                                        behavior: 'smooth'
+                                            top: document.body.scrollHeight,
+                                            behavior: 'smooth'
                                     });
                                     }}>
                                         <p className="text-[#BBBBBB]">Choose Network</p>
