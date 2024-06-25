@@ -24,7 +24,7 @@ export default function NetworkModal(props: NetworkModalProps) {
 
   if (props.chain === "ethereum") {
     ImageContent = (
-      <img className="w-[42px] h-[42px]" src="./assets/chain/Ethereum.svg" />
+      <img className="w-[42px] h-[42px]" src="./assets/chain/Ethereum.svg" alt='ether'/>
     );
     TitleContent = (
       <p className="text-[24px] text-white select-none">Ethereum</p>
@@ -34,7 +34,7 @@ export default function NetworkModal(props: NetworkModalProps) {
     );
   } else if (props.chain === "solana") {
     ImageContent = (
-      <img className="w-[42px] h-[42px]" src="./assets/chain/Solana.svg" />
+      <img className="w-[42px] h-[42px]" src="./assets/chain/Solana.svg" alt='solana'/>
     );
     TitleContent = <p className="text-[24px] text-white select-none">Solana</p>;
     ValueContent = (
@@ -42,7 +42,7 @@ export default function NetworkModal(props: NetworkModalProps) {
     );
   } else if (props.chain === "binance") {
     ImageContent = (
-      <img className="w-[42px] h-[42px]" src="./assets/chain/Binance.svg" />
+      <img className="w-[42px] h-[42px]" src="./assets/chain/Binance.svg" alt='binance'/>
     );
     TitleContent = (
       <p className="text-[24px] text-white select-none">Binance</p>

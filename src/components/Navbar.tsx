@@ -46,6 +46,7 @@ const Navbar = ({ onMenuClicked }: props) => {
   const chains = ["Solana", "Binance", "Ethereum"];
   const [chooseNetSelected, setChooseNetSelected] = useState(false);
   const [connectWalletSelected, setConnectWalletSelected] = useState(false);
+  const [nextChain, setNextChain] = useState<number | null>(null);
   const [menuClicked, setMenuClicked] = useState(false);
   const { address: walletAddress, chain: walletChain} = useAccount()
   const { open } = useWeb3Modal()
@@ -69,7 +70,7 @@ const Navbar = ({ onMenuClicked }: props) => {
   }
   const { chain, setChain } = context;
 
-  const {switchChain} = useSwitchChain()
+  const {switchChain, status, isPending, isSuccess, isError  } = useSwitchChain()
 
   useEffect(() => {
     if(walletChain?.name === 'Sepolia'){
@@ -85,6 +86,16 @@ const Navbar = ({ onMenuClicked }: props) => {
         break;
     }
   }, [walletChain]);
+
+  useEffect(() => {
+    if(isSuccess){
+      setCurrentNetHandle(nextChain);
+      setChooseNetSelected(false);
+    }
+    if(isError){
+      setNextChain(null)
+    }
+  }, [isSuccess, isError]);
 
   const changeChain = (name: string) => {
     switch (name) {
@@ -137,6 +148,7 @@ const Navbar = ({ onMenuClicked }: props) => {
       };
     }, []);
   }
+
   function setCurrentNetHandle(index: any) {
     setChain(index);
   }
@@ -152,10 +164,12 @@ const Navbar = ({ onMenuClicked }: props) => {
                 <img
                     className="w-[54.22px] h-[44.62px]"
                     src={`./assets/theme/${chainName[chain]}/TitleLogo.svg`}
+                    alt='titlelogo'
                 />
                 <img
                     className="w-[68px] h-[20px] md2:hidden"
                     src='./assets/chebu.svg'
+                    alt='chebu'
                 />
                 {/*<p className="text-[19px] text-white select-none font-['Ariana Pro']">Chebu</p>*/}
               </div>
@@ -166,7 +180,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                   setMenuClicked(true);
                 }}
             >
-              <img src="./assets/button/Menu.svg"/>
+              <img src="./assets/button/Menu.svg" alt='menu'/>
             </button>
 
             {menuClicked && <MobileMenu chainName={chainName[chain]} onClose={onMobileMenuClose}/>}
@@ -175,6 +189,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                 <img
                     className="w-[68px] h-[20px] md2:hidden"
                     src='./assets/chebu.svg'
+                    alt='chebu'
                 />
                 {/*<p className="text-[19px] text-white select-none">Chebu</p>*/}
               </Link>
@@ -233,6 +248,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                               ? "./assets/button/ChooseNetImage.svg"
                               : `./assets/chain/${chains[chain - 1]}.svg`
                         }
+                        alt='choose net'
                     />
 
                     <p className="text-[14px] text-white flex-grow text-center select-none">
@@ -242,6 +258,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                       <img
                           className="w-[10px] h-[10px]"
                           src="./assets/button/DownArrow.svg"
+                          alt='down arrow'
                       />
                     </div>
                   </button>
@@ -260,12 +277,11 @@ const Navbar = ({ onMenuClicked }: props) => {
                                   className={`flex flex-row gap-4 items-center p-[4.5px] cursor-pointer ${Theme[chainName[chain] as keyof typeof Theme].btn_bg_selected_color_hover} active:bg-opacity-100 rounded-full`}
                                   onClick={() => {
                                     changeChain(eachChain)
-                                    setCurrentNetHandle(index + 1);
-                                    setChooseNetSelected(false);
+                                    setNextChain(index + 1)
                                   }}
                                   key={index}
                               >
-                                <img src={`./assets/chain/${eachChain}.svg`}/>
+                                <img src={`./assets/chain/${eachChain}.svg`} alt='chain'/>
                                 <p className="text-white text-[15px] select-none">
                                   {eachChain}
                                 </p>
@@ -299,6 +315,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                               ? "./assets/button/DefaultWalletImage.svg"
                               : "./assets/button/MetaMaskWalletImage.svg"
                         }
+                        alt='wallet'
                     />
                     <p className="text-[14px] text-white flex-grow text-center select-none md:hidden">
                       {!isConnected && !publicKey
@@ -328,7 +345,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                                       .btn_bg_selected_color_hover
                                   } active:bg-opacity-100`}
                               >
-                                <img src="./assets/button/MetaMaskWalletImage.svg"/>
+                                <img src="./assets/button/MetaMaskWalletImage.svg" alt='wallet'/>
                                 <p className="text-white text-[15px] select-none">
                                   Metamask
                                 </p>
@@ -338,7 +355,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                         <div
                             className={`flex flex-row gap-4 items-center p-3 cursor-pointer rounded-full p-[4px] ${Theme[chainName[chain] as keyof typeof Theme].btn_bg_selected_color_hover} active:bg-opacity-100`}
                         >
-                          <img src="./assets/button/AnotherWalletImage.svg"/>
+                          <img src="./assets/button/AnotherWalletImage.svg" alt='another wallet'/>
                           <p className="text-white text-[15px] select-none">
                             Another Wallet
                           </p>
@@ -350,7 +367,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                                       .btn_bg_selected_color_hover
                                   } active:bg-opacity-100`}
                               >
-                                <img src="./assets/button/LogOutImage.svg"/>
+                                <img src="./assets/button/LogOutImage.svg" alt='logout'/>
                                 <p className="text-white text-[15px] select-none">
                                   Log out
                                 </p>
@@ -365,7 +382,7 @@ const Navbar = ({ onMenuClicked }: props) => {
           </div>
           <div
               className={`${Theme[chainName[chain] as keyof typeof Theme].toolbar_bg_color
-              } w-full flex flex-row gap-[15px] rounded-full p-1 opacity-0 md:opacity-100`}
+              } w-full flex flex-row gap-[15px] rounded-full p-1 opacity-0 md:opacity-100 hide-small-height`}
           >
             <div className="w-full bg-[#111111] rounded-full flex items-center justify-center gap-1 py-2">
               <p className="text-[#BBBBBB] text-[15px] select-none">Holders: </p>

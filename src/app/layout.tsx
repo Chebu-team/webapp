@@ -49,7 +49,7 @@ export default function RootLayout({
     <DataProvider>
       <html lang="en">
         <body>
-        <div className='h-[100vh]'>
+        <div className='h-[100vh] no-scroll'>
           <SolanaWalletProvider>
             <Web3ModalProvider initialState={initialState}>
               {children}

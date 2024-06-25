@@ -31,9 +31,10 @@ const MobileMenu = ({chainName, onClose}:{chainName: string, onClose: () => void
                 <img
                     className="w-[54.22px] h-[44.62px]"
                     src={`./assets/theme/${chainName}/TitleLogo.svg`}
+                    alt='titleLogo'
                 />
                 <button onClick={onClose} className='absolute right-0 top-1/2 -translate-y-1/2'>
-                    <img src="/assets/button/CloseButton.svg" alt="" className='w-[24px] h-[24px]'/>
+                    <img src="/assets/button/CloseButton.svg" alt="close" className='w-[24px] h-[24px]'/>
                 </button>
             </div>
             <div className='flex justify-center w-full mb-[22px]'>

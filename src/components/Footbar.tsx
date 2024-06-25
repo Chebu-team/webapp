@@ -56,8 +56,8 @@ export default function Footbar() {
 
   return (
     <>
-      <div className="relative w-full bottom-0 flex justify-center md:relative md:p-[16px]">
-        <img className="md:hidden" src="./assets/Footbar.svg" />
+      <div className="relative w-full bottom-0 flex justify-center md:relative md:p-[16px] small-fixed ">
+        <img className="md:hidden" src="./assets/Footbar.svg" alt='footbar'/>
         <div className="absolute flex flex-row w-full h-full max-w-[1160px] justify-center items-center md:relative md:flex-col md:gap-[8px]">
           <div className="text-center w-full md:bg-black md:text-center md:bg-opacity-30 md:backdrop-filter-[60px] md:py-[20px] md:rounded-[20px]">
             <p className="text-[24px] text-white select-none">{timeDiff}</p>

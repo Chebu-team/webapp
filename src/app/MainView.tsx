@@ -93,16 +93,8 @@ export default function App() {
            return acc
        }, {sell: [], buy:[]})
 
-        normalizedRes.sell = normalizedRes.sell.sort((a: any,b: any) => {
-            if(a.amountUSD < b.amountUSD) return -1
-            if(a.amountUSD > b.amountUSD) return 1
-            return 0
-        }).reverse()
-        normalizedRes.buy = normalizedRes.buy.sort((a: any,b: any) => {
-            if(a.amountUSD < b.amountUSD) return -1
-            if(a.amountUSD > b.amountUSD) return 1
-            return 0
-        }).reverse()
+        normalizedRes.sell = normalizedRes.sell.reverse()
+        normalizedRes.buy = normalizedRes.buy.reverse()
 
         return normalizedRes
     }
@@ -156,7 +148,7 @@ export default function App() {
     // @ts-ignore
     const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
     // @ts-ignore
-    const chebuToDollar2 = conversionRateForOneDollar ? BigNumber(conversionRateForOneDollar[0]).dividedBy(BigInt(config.decimalChebu)).plus(BigNumber(conversionRateForOneDollar[1]).dividedBy(BigNumber(config.decimalChebu))) : BigNumber(4715)
+    // const chebuToDollar2 = conversionRateForOneDollar ? BigNumber(conversionRateForOneDollar[0]).dividedBy(BigInt(config.decimalChebu)).plus(BigNumber(conversionRateForOneDollar[1]).dividedBy(BigNumber(config.decimalChebu))) : BigNumber(4715)
 
     const balanceTradeToken = useBalance({
         address: walletAddress,
@@ -173,10 +165,7 @@ export default function App() {
     const allowance = allowanceData || 0
     const allowanceWithDecimals = Number(allowance)/config.decimalTradeToken
 
-    const roundWithDecimals = (number: string) => (Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100).toString()
-    const roundWithDecimals2 = (number: string) => (Math.round(Number((parseFloat(number)*1000).toFixed(2)))/100).toString()
-
-    const { writeContract: sellChebu, isPending: isSellPending, data: sellHash,} = useWriteContract()
+    const { writeContract: sellChebu, isPending: isSellPending, data: sellHash} = useWriteContract()
     const { writeContract: buyChebu, isPending: isChebuBuyPending, data: buyChebuHash} = useWriteContract()
     const { writeContract: approveTradeToken, isPending: approvePending, data: approveTradeTokenHash } = useWriteContract()
 
@@ -188,7 +177,7 @@ export default function App() {
         hash: approveTradeTokenHash,
         pollingInterval: 1_000
     })
-    const {isSuccess: isBuyDone, isFetched: fet } = useWaitForTransactionReceipt({
+    const {isSuccess: isBuyDone } = useWaitForTransactionReceipt({
         hash: buyChebuHash,
         pollingInterval: 1_000
     })
@@ -200,6 +189,7 @@ export default function App() {
         if(isSellDone) {
             balanceTradeToken.refetch()
             balanceChebu.refetch()
+            getDeals()
             toast.update(sellToastId || 0, { render: "SELL Confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             setSellToastId(null)
         }
@@ -216,12 +206,13 @@ export default function App() {
                 abi: config.chebuAbi,
                 address: config.chebuAddress,
                 functionName: 'mintTokensForExactStable',
-                args: [BigNumber(spendCountChebu).dividedBy(BigNumber(chebuToDollar2).multipliedBy(BigNumber(config.decimalTradeToken)))]
+                args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
             })
         }
     }, [isApproveDone, approveTradeTokenHash]);
 
     useEffect(() => {
+        console.log(isChebuBuyPending)
         if(buyChebuHash && !isBuyDone){
             setBuyToastId(toast.loading('Transaction processing'))
         }
@@ -230,7 +221,7 @@ export default function App() {
             balanceTradeToken.refetch()
             balanceChebu.refetch()
         }
-    }, [isBuyDone, buyChebuHash]);
+    }, [isBuyDone, buyChebuHash, isChebuBuyPending]);
 
     const chainName = ["black", "solana", "binance", "ethereum"];
     const context = useData();
@@ -270,26 +261,27 @@ export default function App() {
                 <div className='relative'>
                     {/* Website Landing */}
                     <div className="absolute top-0 left-0 pointer-events-none">
-                        <img src={Theme[chainName[chain] as keyof typeof Theme].effect}/>
+                        <img src={Theme[chainName[chain] as keyof typeof Theme].effect} alt='effect'/>
                     </div>
                     <div className="fixed bottom-0 right-0 pointer-events-none">
-                        <img src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur2}
-                        />
+                        <img src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur2} alt='blur2'/>
                     </div>
                     {/* WebSite Container */}
                     <div className="relative max-w-[1440px] w-full m-auto min-h-[100vh] overflow-hidden flex flex-col">
                         <Navbar onMenuClicked={setVisibleMenuModal}/>
                         <div
-                            className="grow w-full flex px-[71px] flex-row justify-between items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
+                            className="grow w-full flex px-[71px] flex-row justify-between items-start items-center md:flex-col md:items-center md:p-[16px] md:gap-5">
                             <div className='flex justify-center grow'>
                                 <div className=''>
                                     <img
                                         className='md:h-auto h-[17vh]'
                                         src={Theme[chainName[chain] as keyof typeof Theme].title}
+                                        alt='title'
                                     />
                                     <img
-                                        className='md:h-auto h-[50vh]'
+                                        className='md:h-auto h-[50vh] chebu-scale'
                                         src={Theme[chainName[chain] as keyof typeof Theme].hero}
+                                        alt='hero'
                                     />
                                 </div>
                             </div>
@@ -315,12 +307,12 @@ export default function App() {
                                         }}
                                     >
                                         <p className="text-[#BBBBBB]">View Price</p>
-                                        <img src="./assets/button/ScrollDown.svg"/>
+                                        <img src="./assets/button/ScrollDown.svg" alt='scroll'/>
                                     </div>
                                 )}
                             </div>
                             {chain === 0 ? (
-                                <div className="flex flex-col gap-3 pr-[50px] md:hidden md:pr-0">
+                                <div className="flex flex-col gap-3 pr-[50px] md:hidden md:pr-0 little-scale">
                                     <p className="text-[32px] text-white select-none md:hidden">
                                         Choose your Chebu
                                     </p>
@@ -332,7 +324,7 @@ export default function App() {
                                 </div>
                             ) : (
                                 <div
-                                    className={`flex flex-col gap-[16px] p-6 buysell-modal md:w-full ${chain ? chainName[chain] : ""
+                                    className={`flex flex-col gap-[16px] p-6 buysell-modal md:w-full height-scale ${chain ? chainName[chain] : ""
                                     } ${viewMode ? "" : "md:hidden"}`}
                                 >
                                     <table className="price-table">
@@ -471,6 +463,7 @@ export default function App() {
                                                     src={
                                                         Theme[chainName[chain] as keyof typeof Theme].herohead
                                                     }
+                                                    alt='herohead'
                                                 />
                                             </div>
                                         </div>

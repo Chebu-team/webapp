@@ -28,6 +28,7 @@
     "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
+    "react-number-format": "^5.4.0",
     "react-toastify": "^10.0.5",
     "sass": "^1.74.1",
     "viem": "^2.15.1",

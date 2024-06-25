@@ -34,11 +34,12 @@ export default function App() {
       ) : (
           <div>
             <div className="absolute top-0 left-0 pointer-events-none">
-              <img src={Theme[chainName[chain] as keyof typeof Theme].topBlur}/>
+              <img src={Theme[chainName[chain] as keyof typeof Theme].topBlur} alt='chain'/>
             </div>
             <div className="fixed pointer-events-none bottom-0 right-0">
               <img
                   src={Theme[chainName[chain] as keyof typeof Theme].bottomBlur1}
+                  alt='blur'
               />
             </div>
 
