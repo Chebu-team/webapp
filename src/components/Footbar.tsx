@@ -5,30 +5,37 @@ import config from "@/config/general";
 import BigNumber from "bignumber.js";
 import dayjs from "dayjs";
 import duration from 'dayjs/plugin/duration'
+import {useData} from "@/context/DataContext";
 
 const targetTimestamp = '2024-06-22T16:00:00.000Z'
 
 export default function Footbar() {
+  const context = useData();
+  if (!context) {
+    throw new Error("useData must be used within a DataProvider");
+  }
+  const { chain } = context;
+
   const {data:timestamp}: any= useReadContract({
     abi: config.chebuAbi,
-    address: config.chebuAddress,
+    address: config.chebuAddress[chain],
     functionName: 'CREATED',
   })
   const {data:maxPrice}: any= useReadContract({
     abi: config.chebuAbi,
-    address: config.chebuAddress,
+    address: config.chebuAddress[chain],
     functionName: 'maxPrice',
   })
 
   const targetTimestamp = timestamp?.toString()
   const {data:round} = useReadContract({
     abi: config.chebuAbi,
-    address: config.chebuAddress,
+    address: config.chebuAddress[chain],
     functionName: 'getCurrentRound',
   })
   const {data:level = []}  = useReadContract({
     abi: config.chebuAbi,
-    address: config.chebuAddress,
+    address: config.chebuAddress[chain],
     functionName: 'priceAndMintedInRound',
     args: [round]
   })

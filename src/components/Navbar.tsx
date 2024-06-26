@@ -15,6 +15,8 @@ import MobileMenu from "@/components/MobileMenu";
 
 import {mainnet, sepolia, bsc} from "wagmi/chains";
 import config from "@/config/general";
+import {useNavigation} from "react-router";
+import {useRouter} from "next/navigation";
 
 interface props {
   onMenuClicked: any;
@@ -50,10 +52,17 @@ const Navbar = ({ onMenuClicked }: props) => {
   const [menuClicked, setMenuClicked] = useState(false);
   const { address: walletAddress, chain: walletChain} = useAccount()
   const { open } = useWeb3Modal()
+  const router = useRouter()
+
+  const context = useData();
+  if (!context) {
+    throw new Error("useData must be used within a DataProvider");
+  }
+  const { chain, setChain } = context;
 
   const {data: tradeToken} = useReadContract({
     abi: config.chebuAbi,
-    address: config.chebuAddress,
+    address: config.chebuAddress[chain],
     functionName: 'tradeToken',
   })
 
@@ -61,14 +70,8 @@ const Navbar = ({ onMenuClicked }: props) => {
     abi: config.tetherAbi,
     address: tradeToken as any,
     functionName: 'balanceOf',
-    args: [config.chebuAddress]
+    args: [config.chebuAddress[chain]]
   })
-
-  const context = useData();
-  if (!context) {
-    throw new Error("useData must be used within a DataProvider");
-  }
-  const { chain, setChain } = context;
 
   const {switchChain, status, isPending, isSuccess, isError  } = useSwitchChain()
 
@@ -278,6 +281,7 @@ const Navbar = ({ onMenuClicked }: props) => {
                                   onClick={() => {
                                     changeChain(eachChain)
                                     setNextChain(index + 1)
+                                    router.push('/')
                                   }}
                                   key={index}
                               >

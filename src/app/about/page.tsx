@@ -45,7 +45,7 @@ export default function App() {
 
             <div className="max-w-[1440px] w-full m-auto relative min-h-[100vh]">
               <Navbar onMenuClicked={setVisibleMenuModal}/>
-              <div className="flex flex-row justify-center md:p-[10px]">
+              <div className="flex flex-row justify-center md:p-[10px] responive-height">
                 <div className="w-full max-w-[940px] flex flex-col justify-center gap-16 pb-20">
                   <p className="text-white text-[32px] text-center">
                     How it works

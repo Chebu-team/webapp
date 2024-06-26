@@ -49,6 +49,13 @@ export default function App() {
     const [deals, setDeals] = useState({sell:[defaultTransaction,defaultTransaction,defaultTransaction], buy:[defaultTransaction,defaultTransaction,defaultTransaction]})
     const {switchChain} = useSwitchChain()
 
+    const context = useData();
+    if (!context) {
+        throw new Error("useData must be used within a DataProvider");
+    }
+
+    const { chain } = context;
+
     const getNormalValue = (num: bigint, decimals: number, format: number) => {
         const x = new BigNumber(num.toString())
         const y = new BigNumber(decimals)
@@ -58,7 +65,7 @@ export default function App() {
     const getDeals = async () => {
         const blockNumber = await client.getBlockNumber()
         const logs = await client.getLogs({
-            address: config.chebuAddress,
+            address: config.chebuAddress[chain],
             fromBlock: blockNumber - BigInt(30000),
             toBlock: blockNumber
         })
@@ -71,7 +78,7 @@ export default function App() {
 
        const normalizedRes = res.reduce((acc: any, item) => {
            // @ts-ignore
-           if(item.args.assetIn === config.chebuAddress){
+           if(item.args.assetIn === config.chebuAddress[chain]){
                acc.sell.push({
                    // @ts-ignore
                    amountUSD: getNormalValue(item.args.amountOut, config.decimalTradeToken, 3),
@@ -100,6 +107,7 @@ export default function App() {
     }
 
     useEffect(() => {
+        if(!chain) return
         getDeals().then(item => {
             setDeals(item)
         })
@@ -111,7 +119,7 @@ export default function App() {
         return () => {
             clearInterval(interval)
         }
-    }, []);
+    }, [chain]);
 
     const changeChain = (name: string) => {
         switch (name) {
@@ -129,19 +137,19 @@ export default function App() {
 
     const balanceChebu = useBalance({
         address: walletAddress,
-        token: config.chebuAddress
+        token: config.chebuAddress[chain]
     })
 
 
     const tradeToken = useReadContract({
         abi: config.chebuAbi,
-        address: config.chebuAddress,
+        address: config.chebuAddress[chain],
         functionName: 'tradeToken',
     })
 
     const {data: conversionRateForOneDollar, isPending, status} = useReadContract({
         abi: config.chebuAbi,
-        address: config.chebuAddress,
+        address: config.chebuAddress[chain],
         functionName: 'calcMintTokensForExactStable',
         args:[config.decimalTradeToken],
     })
@@ -159,7 +167,7 @@ export default function App() {
         abi: config.tetherAbi,
         address: tradeToken.data as any,
         functionName: 'allowance',
-        args: [walletAddress, config.chebuAddress]
+        args: [walletAddress, config.chebuAddress[chain]]
     })
 
     const allowance = allowanceData || 0
@@ -204,7 +212,7 @@ export default function App() {
             setToastId(null)
             buyChebu({
                 abi: config.chebuAbi,
-                address: config.chebuAddress,
+                address: config.chebuAddress[chain],
                 functionName: 'mintTokensForExactStable',
                 args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
             })
@@ -212,7 +220,6 @@ export default function App() {
     }, [isApproveDone, approveTradeTokenHash]);
 
     useEffect(() => {
-        console.log(isChebuBuyPending)
         if(buyChebuHash && !isBuyDone){
             setBuyToastId(toast.loading('Transaction processing'))
         }
@@ -224,12 +231,6 @@ export default function App() {
     }, [isBuyDone, buyChebuHash, isChebuBuyPending]);
 
     const chainName = ["black", "solana", "binance", "ethereum"];
-    const context = useData();
-    if (!context) {
-        throw new Error("useData must be used within a DataProvider");
-    }
-
-    const { chain, setChain } = context;
     const [visibleMenuModal, setVisibleMenuModal] = useState(false);
 
     return (
@@ -238,7 +239,7 @@ export default function App() {
             className={`w-full min-h-[100vh] ${Theme[chainName[chain] as keyof typeof Theme].backgroundColor}`}
         >
             {/*@ts-ignore*/}
-            {/*<p className='fixed top-[100px] left-1/3 z-50 text-white'>{status} {allowanceWithDecimals} {chebuToDollar}</p>*/}
+            {/*<p className='fixed top-[100px] left-1/3 z-50 text-white'>{config.chebuAddress[chain]}</p>*/}
             <ToastContainer
                 position="bottom-right"
                 autoClose={5000}
@@ -427,7 +428,7 @@ export default function App() {
                                                             address: tradeToken.data as any,
                                                             functionName: 'approve',
                                                             args: [
-                                                                config.chebuAddress,
+                                                                config.chebuAddress[chain],
                                                                 Math.ceil(spendCountChebu / chebuToDollar * 100) / 100 * config.decimalTradeToken
                                                             ]
                                                         })
@@ -435,7 +436,7 @@ export default function App() {
                                                     }
                                                     buyChebu({
                                                         abi: config.chebuAbi,
-                                                        address: config.chebuAddress,
+                                                        address: config.chebuAddress[chain],
                                                         functionName: 'mintTokensForExactStable',
                                                         args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
                                                     })
@@ -450,7 +451,7 @@ export default function App() {
                                                     }
                                                     sellChebu({
                                                         abi: config.chebuAbi,
-                                                        address: config.chebuAddress,
+                                                        address: config.chebuAddress[chain],
                                                         functionName: 'burnExactTokensForStable',
                                                         args: [spendCountChebu * config.decimalChebu]
                                                     })
@@ -480,9 +481,9 @@ export default function App() {
                             </div>}
                         </div>
                     </div>
-                    <div className={`${viewMode ? "md:p-[26px]" : "md:hidden"}`}>
-                        <Socialbar/>
-                    </div>
+                    {/*<div className={`${viewMode ? "md:p-[26px]" : "md:hidden"}`}>*/}
+                    {/*    <Socialbar/>*/}
+                    {/*</div>*/}
                 </div>
             )}
         </div>
