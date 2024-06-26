@@ -32,6 +32,11 @@ const client= createPublicClient({
     transport: http(),
 })
 
+const clientMainnet= createPublicClient({
+    chain: mainnet,
+    transport: http(),
+})
+
 const defaultTransaction = {
     amountUSD: '0',
     amountChebu: '0',
@@ -63,10 +68,11 @@ export default function App() {
     }
 
     const getDeals = async () => {
-        const blockNumber = await client.getBlockNumber()
-        const logs = await client.getLogs({
+        const currClient = chain === 3 ? clientMainnet : client
+        const blockNumber = await currClient.getBlockNumber()
+        const logs = await currClient.getLogs({
             address: config.chebuAddress[chain],
-            fromBlock: blockNumber - BigInt(30000),
+            fromBlock: blockNumber - BigInt(chain === 3 ? 799 : 30000),
             toBlock: blockNumber
         })
 
