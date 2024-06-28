@@ -23,18 +23,20 @@ import {useWeb3Modal} from "@web3modal/wagmi/react";
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import {bsc, mainnet, sepolia} from "wagmi/chains";
-import {createPublicClient, http, parseAbiItem, parseEventLogs} from 'viem'
+import {createPublicClient, getEventSignature, http, parseAbiItem, parseEventLogs, webSocket} from 'viem'
 import BigNumber from "bignumber.js";
+import { utils, ethers} from "ethers";
+import {hexZeroPad} from "ethers/lib/utils";
 
 
 const client= createPublicClient({
     chain: sepolia,
-    transport: http(),
+    transport: http('https://mainnet.infura.io/v3/033a4492eb124ac0bf68eeddbeb5f8b0'),
 })
 
 const clientMainnet= createPublicClient({
     chain: mainnet,
-    transport: http(),
+    transport: http('https://mainnet.infura.io/v3/033a4492eb124ac0bf68eeddbeb5f8b0'),
 })
 
 const defaultTransaction = {
@@ -42,6 +44,26 @@ const defaultTransaction = {
     amountChebu: '0',
     amountSol: '0'
 }
+
+const wagmiAbi = [
+        {
+            inputs: [
+                {
+                    indexed: true,
+                    name: "from",
+                    type: "address",
+                },
+                { indexed: true, name: "to", type: "address" },
+                {
+                    indexed: true,
+                    name: "tokenId",
+                    type: "uint256",
+                },
+            ],
+            name: "Transfer",
+            type: "event",
+        },
+];
 
 export default function App() {
     const [viewMode, setViewMode] = useState(true);
@@ -64,52 +86,56 @@ export default function App() {
     const getNormalValue = (num: bigint, decimals: number, format: number) => {
         const x = new BigNumber(num.toString())
         const y = new BigNumber(decimals)
-        return(x.div(y).toFormat(format))
+        const result = x.div(y)
+        return(result.toFormat(format))
+    }
+
+    const parseLog = (log: any) => {
+        const res = parseEventLogs({
+            logs: log,
+            abi: config.chebuAbi,
+            eventName: 'Deal'
+        })
+        const normalizedRes = res.reduce((acc: any, item: any) => {
+            // @ts-ignore
+            if(item.args.assetIn === config.chebuAddress[chain]){
+                acc.sell.push({
+                    // @ts-ignore
+                    amountUSD: getNormalValue(item.args.amountOut, config.decimalTradeToken, 3),
+                    // @ts-ignore
+                    amountChebu: getNormalValue(item.args.amountIn, config.decimalChebu, 0),
+                    // @ts-ignore
+                    amountSol: getNormalValue(item.args.amountOut, config.decimalTradeToken, 5)
+                })
+            } else {
+                acc.buy.push({
+                    // @ts-ignore
+                    amountUSD: getNormalValue(item.args.amountIn, config.decimalTradeToken, 3),
+                    // @ts-ignore
+                    amountChebu: getNormalValue(item.args.amountOut, config.decimalChebu, 0),
+                    // @ts-ignore
+                    amountSol: getNormalValue(item.args.amountIn, config.decimalTradeToken, 5)
+                })
+            }
+            return acc
+        }, {sell: [], buy:[]})
+
+        normalizedRes.sell = normalizedRes.sell.reverse()
+        normalizedRes.buy = normalizedRes.buy.reverse()
+        return normalizedRes
     }
 
     const getDeals = async () => {
         const currClient = chain === 3 ? clientMainnet : client
         const blockNumber = await currClient.getBlockNumber()
-        const logs = await currClient.getLogs({
+        const rawLogs = await currClient.getLogs({
             address: config.chebuAddress[chain],
-            fromBlock: blockNumber - BigInt(chain === 3 ? 799 : 30000),
+            fromBlock: blockNumber - BigInt(30000),
             toBlock: blockNumber
         })
+        const result = parseLog(rawLogs)
 
-        const res = parseEventLogs({
-            logs,
-            abi: config.chebuAbi,
-            eventName: 'Deal'
-        })
-
-       const normalizedRes = res.reduce((acc: any, item) => {
-           // @ts-ignore
-           if(item.args.assetIn === config.chebuAddress[chain]){
-               acc.sell.push({
-                   // @ts-ignore
-                   amountUSD: getNormalValue(item.args.amountOut, config.decimalTradeToken, 3),
-                   // @ts-ignore
-                   amountChebu: getNormalValue(item.args.amountIn, config.decimalChebu, 0),
-                   // @ts-ignore
-                   amountSol: getNormalValue(item.args.amountOut, config.decimalTradeToken*132, 5)
-               })
-           } else {
-               acc.buy.push({
-                   // @ts-ignore
-                   amountUSD: getNormalValue(item.args.amountIn, config.decimalTradeToken, 3),
-                   // @ts-ignore
-                   amountChebu: getNormalValue(item.args.amountOut, config.decimalChebu, 0),
-                   // @ts-ignore
-                   amountSol: getNormalValue(item.args.amountIn, config.decimalTradeToken*132, 5)
-               })
-           }
-           return acc
-       }, {sell: [], buy:[]})
-
-        normalizedRes.sell = normalizedRes.sell.reverse()
-        normalizedRes.buy = normalizedRes.buy.reverse()
-
-        return normalizedRes
+        return result
     }
 
     useEffect(() => {
@@ -159,10 +185,10 @@ export default function App() {
         functionName: 'calcMintTokensForExactStable',
         args:[config.decimalTradeToken],
     })
+
     // @ts-ignore
     const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
     // @ts-ignore
-    // const chebuToDollar2 = conversionRateForOneDollar ? BigNumber(conversionRateForOneDollar[0]).dividedBy(BigInt(config.decimalChebu)).plus(BigNumber(conversionRateForOneDollar[1]).dividedBy(BigNumber(config.decimalChebu))) : BigNumber(4715)
 
     const balanceTradeToken = useBalance({
         address: walletAddress,
@@ -336,65 +362,65 @@ export default function App() {
                                 >
                                     <table className="price-table">
                                         <tr className="table-row-head">
-                                            <td className="text-left">Price (SOL)</td>
+                                            <td className="text-left">Price</td>
                                             <td className="text-center">Amount (Chebu)</td>
                                             <td className="text-right">Amount (USD)</td>
                                         </tr>
                                         <tr className="table-row-item-red">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.sell[3]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.sell[3]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.sell[3]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.sell[3]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.sell[3]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.sell[3]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-red">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.sell[2]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.sell[2]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.sell[2]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.sell[2]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.sell[2]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.sell[2]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-red">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.sell[1]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.sell[1]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.sell[1]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.sell[1]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.sell[1]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.sell[1]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-selected">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.sell[0]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.sell[0]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.sell[0]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.sell[0]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.sell[0]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.sell[0]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-green">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.buy[0]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.buy[0]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.buy[0]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.buy[0]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.buy[0]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.buy[0]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-green">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.buy[1]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.buy[1]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.buy[1]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.buy[1]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.buy[1]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.buy[1]?.amountUSD || 0}</td>
                                         </tr>
                                         <tr className="table-row-item-green">
                                             {/*@ts-ignore*/}
-                                            <td className="text-left">{deals.buy[2]?.amountSol || 0}</td>
+                                            <td className="text-left">{deals?.buy[2]?.amountSol || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-center">{deals.buy[2]?.amountChebu || 0}</td>
+                                            <td className="text-center">{deals?.buy[2]?.amountChebu || 0}</td>
                                             {/*@ts-ignore*/}
-                                            <td className="text-right text-white">{deals.buy[2]?.amountUSD || 0}</td>
+                                            <td className="text-right text-white">{deals?.buy[2]?.amountUSD || 0}</td>
                                         </tr>
                                     </table>
                                     <div className='flex flex-col gap-[4px]'>
