@@ -86,8 +86,11 @@ export default function App() {
     const getNormalValue = (num: bigint, decimals: number, format: number) => {
         const x = new BigNumber(num.toString())
         const y = new BigNumber(decimals)
-        const result = x.div(y)
-        return(result.toFormat(format))
+        let result = x.div(y)
+        if(result.toNumber() < 0.001 && format === 3){
+            result = BigNumber(0.001)
+        }
+        return(result.toFixed(format))
     }
 
     const parseLog = (log: any) => {
