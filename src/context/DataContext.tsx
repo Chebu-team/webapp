@@ -18,7 +18,6 @@ export const DataProvider = ({ children }: any) => {
   const getInitialData = () => {
     //const initial = window.localStorage.getItem(T_KEY) ?? 0;
     const initial = 0;
-    console.log("initial chain", initial);
     return Number(initial);
   };
 
@@ -27,7 +26,6 @@ export const DataProvider = ({ children }: any) => {
 
   const handleChain = (value: any) => {
     localStorage.setItem(T_KEY, value);
-    console.log("setting chain", value);
     setChain(value);
   };
 

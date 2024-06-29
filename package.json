@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm .next -r && next dev"
   },
   "dependencies": {
     "@metamask/logo": "^3.1.2",
@@ -16,20 +17,22 @@
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.91.7",
-    "@tanstack/react-query": "^5.29.2",
+    "@tanstack/react-query": "^5.40.0",
     "@thirdweb-dev/react": "^4.4.31",
     "@thirdweb-dev/sdk": "^4.0.57",
     "@wagmi/core": "^2.6.17",
-    "@web3modal/wagmi": "^4.1.10",
+    "@web3modal/wagmi": "^4.2.3",
     "@web3uikit/core": "^1.1.5",
     "ethers": "^5.7.2",
     "next": "14.1.4",
     "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
+    "react-number-format": "^5.4.0",
+    "react-toastify": "^10.0.5",
     "sass": "^1.74.1",
-    "viem": "^2.9.25",
-    "wagmi": "^2.5.20"
+    "viem": "^2.15.1",
+    "wagmi": "^2.9.8"
   },
   "devDependencies": {
     "@types/node": "^20",

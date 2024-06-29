@@ -16,8 +16,9 @@ const config: Config = {
 
       screens: {
         'sm': {"max":"600px"},
-        'md': {"max":"1100px"},
-        'lg' : {"min": "1100px"}
+        'md': {"max":"1024px"},
+        'md2': {"max":"1216px", "min": "1025px"},
+        'lg' : {"min": "1025px"}
         // 'md': '768px', // Medium devices
         // 'lg': '1024px', // Large devices
         // You can continue adding sizes:

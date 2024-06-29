@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import NetworkModal from "../utilities/NetworkModal";
-import { useData } from "../context/DataContext";
+import NetworkModal from "@/components/NetworkModal";
+import { useData } from "@/context/DataContext";
 import Link from "next/link";
 
 const NetSelectModal = ({ onCloseClicked }: any) => {
@@ -13,12 +13,12 @@ const NetSelectModal = ({ onCloseClicked }: any) => {
     <div className="relative w-full">
       <div className="absolute top-0 w-full left-0 min-h-[100vh] flex flex-col bg-[#121216] p-[15px]">
         <div className="flex flex-row justify-center items-center relative">
-          <img src="./assets/DefaultHero.svg" />
+          <img src="./assets/DefaultHero.svg" alt='default hero'/>
           <div
             className="absolute right-0"
             onClick={() => onCloseClicked(false)}
           >
-            <img src="./assets/button/CloseButton.svg" />
+            <img src="./assets/button/CloseButton.svg" alt='close button'/>
           </div>
         </div>
         <Link href="/about">
