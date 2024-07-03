@@ -270,7 +270,7 @@ export default function App() {
                                     </p>
                                     <div
                                         className="grid grid-cols-2 gap-2 md:grid-cols-1 md:grid md:gap-[14px] md:w-full">
-                                        <NetworkModal chain="ethereum" onClick={null}/>
+                                        <NetworkModal tvl={tvlEther} chain="ethereum" onClick={null}/>
                                         <NetworkModal chain="solana" onClick={null}/>
                                         <NetworkModal chain="binance" onClick={null}/>
                                     </div>
