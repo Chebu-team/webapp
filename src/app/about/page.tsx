@@ -63,8 +63,7 @@ export default function App() {
                       <p className="text-white text-[24px] md:text-[20px]">Shill / Hold</p>
                     </div>
 
-                    <div
-                        className="w-full max-w-[300px] h-[156px] md:h-[120px] rounded-[32px] bg-[#2D2D2D4D] flex flex-col justify-center items-center gap-3">
+                    <div className="w-full max-w-[300px] h-[156px] md:h-[120px] rounded-[32px] bg-[#2D2D2D4D] flex flex-col justify-center items-center gap-3">
                       <p className="text-white text-[14px]">III</p>
                       <p className="text-white text-[24px] md:text-[20px]">Take profit</p>
                     </div>
@@ -91,10 +90,11 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <Footbar/>
-            <div className="md:p-[26px]">
-              <Socialbar/>
-            </div>
+            <div className='md:hidden'><Footbar/></div>
+
+            {/*<div className="md:p-[26px]">*/}
+            {/*  <Socialbar/>*/}
+            {/*</div>*/}
           </div>
       )}
     </div>

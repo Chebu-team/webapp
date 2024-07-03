@@ -394,7 +394,7 @@ const Navbar = ({ onMenuClicked }: props) => {
             </div>
             <div className="w-full bg-[#111111] rounded-full flex items-center justify-center gap-1 ">
               <p className="text-[#BBBBBB] text-[15px] select-none">TVL: </p>
-              <p className="text-white text-[15px] select-none">1,23M $</p>
+              <p className="text-white text-[15px] select-none">{`${Math.round(Number(tvl || 0)/config.decimalTradeToken)}`} $</p>
             </div>
           </div>
         </div>
