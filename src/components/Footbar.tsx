@@ -21,6 +21,18 @@ export default function Footbar() {
     address: config.chebuAddress[chain],
     functionName: 'CREATED',
   })
+
+  const {data:maxSupply}: any= useReadContract({
+    abi: config.chebuAbi,
+    address: config.chebuAddress[chain],
+    functionName: 'MAX_TOTAL_SUPPLY',
+  })
+  const {data:roundVolume}: any= useReadContract({
+    abi: config.chebuAbi,
+    address: config.chebuAddress[chain],
+    functionName: 'ROUND_VOLUME',
+  })
+
   const {data:maxPrice}: any= useReadContract({
     abi: config.chebuAbi,
     address: config.chebuAddress[chain],
@@ -72,7 +84,7 @@ export default function Footbar() {
           </div>
           <div className="text-center w-full left-right-border md:bg-black md:bg-opacity-30 md:backdrop-filter-[60px] md:py-[20px] md:rounded-[20px]">
             {/*@ts-ignore*/}
-            <p className="text-[24px] text-white select-none">{level[0] ? level[0].toString() : 0} / {level[1] ? BigNumber(level[1]).div(BigNumber(config.decimalChebu)).toFormat(0) : 0}</p>
+            <p className="text-[24px] text-white select-none">{level[0] ? level[0].toString() : 0} / {maxSupply && roundVolume ? BigNumber(maxSupply).div(BigNumber(config.decimalChebu)).div(BigNumber(roundVolume).div(BigNumber(config.decimalChebu))).toFormat(0) : 0}</p>
             <p className="text-[13px] text-[#989898] select-none">Level</p>
           </div>
           <div className="text-center w-full md:bg-black md:text-center md:bg-opacity-30 md:backdrop-filter-[60px] md:py-[20px] md:rounded-[20px]">

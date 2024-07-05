@@ -103,11 +103,18 @@ export default function App() {
         functionName: 'tradeToken',
     })
 
-    const {data: conversionRateForOneDollar, isPending, status} = useReadContract({
+    const {data: conversionRateForOneDollar, isPending, status, refetch: refetchBuyChebuAmount} = useReadContract({
         abi: config.chebuAbi,
         address: config.chebuAddress[chain],
         functionName: 'calcMintTokensForExactStable',
         args:[config.decimalTradeToken],
+    })
+    const {data: buyAmountInUSDT, isPending: isBuyAmountPending, refetch: refetchBuyAmountUSDT} = useReadContract({
+        abi: config.chebuAbi,
+        address: config.chebuAddress[chain],
+        functionName: 'calcMintStableForExactTokens',
+        args:[BigNumber(spendCountChebu).multipliedBy(config.decimalChebu).toNumber()],
+        scopeKey: spendCountChebu.toString()
     })
 
     const {data: tvlEther}: any = useReadContract({
@@ -116,10 +123,14 @@ export default function App() {
         functionName: 'balanceOf',
         args: [config.chebuAddress[3]]
     })
+    useEffect(() => {
+        console.log(buyAmountInUSDT)
+    }, [buyAmountInUSDT]);
 
     // @ts-ignore
     const chebuToDollar = conversionRateForOneDollar ? parseFloat((Number(conversionRateForOneDollar[0])/config.decimalChebu + Number(conversionRateForOneDollar[1])/config.decimalChebu).toFixed(2)) : 4715
     // @ts-ignore
+    const chebuForOneDollarNormalized = conversionRateForOneDollar ? BigNumber(conversionRateForOneDollar[0]).div(config.decimalChebu) : null
 
     const balanceTradeToken = useBalance({
         address: walletAddress,
@@ -169,11 +180,13 @@ export default function App() {
         if(isApproveDone) {
             toast.update(toastId || 0, { render: "Approve confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             setToastId(null)
+            // @ts-ignore
+            const amount: any = buyAmountInUSDT[0]
             buyChebu({
                 abi: config.chebuAbi,
                 address: config.chebuAddress[chain],
                 functionName: 'mintTokensForExactStable',
-                args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
+                args: [amount]
             })
         }
     }, [isApproveDone, approveTradeTokenHash]);
@@ -186,6 +199,9 @@ export default function App() {
             toast.update(buyToastId || 0, { render: "Purchase confirmed!", type: "success", isLoading: false, autoClose: 2000 });
             balanceTradeToken.refetch()
             balanceChebu.refetch()
+            refetchRound()
+            refetchRemain()
+            refetchMinted()
         }
     }, [isBuyDone, buyChebuHash, isChebuBuyPending]);
 
@@ -200,7 +216,7 @@ export default function App() {
             {/*@ts-ignore*/}
             <p className='fixed top-[100px] left-1/3 z-50 text-white'>
                 {/*@ts-ignore*/}
-                {/*<p className="text-[24px] text-white select-none">{priceAndRemain[0] ? priceAndRemain[0].toString() : 0} / {priceAndRemain[1] ? BigNumber(priceAndRemain[1]).div(BigNumber(config.decimalChebu)).toFormat(0) : 0}</p>*/}
+                {/*<p className="text-[24px] text-white select-none">{``}</p>*/}
             </p>
             <ToastContainer
                 position="bottom-right"
@@ -366,22 +382,29 @@ export default function App() {
                                         <div
                                             className="w-full rounded-full flex flex-row text-white text-[16px] overflow-hidden border-[#0A0A0A] border-4 relative">
                                             <button
-                                                className={`${isAllowanceFetching || isChebuBuyPending || approvePending ? 'opacity-30' : ''} w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}
-                                                disabled={isAllowanceFetching || isChebuBuyPending || approvePending}
+                                                className={`${isAllowanceFetching || isChebuBuyPending || approvePending || isBuyAmountPending ? 'opacity-30' : ''} w-full bg-[#21DB60] flex justify-center items-center p-3 cursor-pointer hover:bg-green-600 hover:scale-105 hover:shadow-lg transition duration-300 ease-in-out`}
+                                                disabled={isAllowanceFetching || isChebuBuyPending || approvePending || !chebuForOneDollarNormalized || isBuyAmountPending}
                                                 onClick={async () => {
+                                                    if(!chebuForOneDollarNormalized) return
                                                     if (!walletAddress) {
                                                         open()
                                                         return
                                                     }
                                                     const {data: currAllowance} = await refetchAllowance()
-                                                    if (currAllowance < spendCountChebu / chebuToDollar * config.decimalTradeToken) {
+                                                    // const {data: amount} = await refetchBuyChebuAmount()
+                                                    // @ts-ignore
+                                                    const amount: any = buyAmountInUSDT[0]
+                                                    const allowance = BigNumber(currAllowance).div(config.decimalTradeToken)
+                                                    const dollarAmount = BigNumber(spendCountChebu).div(chebuForOneDollarNormalized)
+
+                                                    if (allowance.isLessThan(amount)) {
                                                         approveTradeToken({
                                                             abi: config.tetherAbi,
                                                             address: tradeToken.data as any,
                                                             functionName: 'approve',
                                                             args: [
                                                                 config.chebuAddress[chain],
-                                                                Math.ceil(spendCountChebu / chebuToDollar * 100) / 100 * config.decimalTradeToken
+                                                                amount
                                                             ]
                                                         })
                                                         return
@@ -390,10 +413,10 @@ export default function App() {
                                                         abi: config.chebuAbi,
                                                         address: config.chebuAddress[chain],
                                                         functionName: 'mintTokensForExactStable',
-                                                        args: [Math.round(spendCountChebu / chebuToDollar * config.decimalTradeToken)]
+                                                        args: [amount]
                                                     })
                                                 }}>
-                                                <p>{isChebuBuyPending || approvePending || isAllowanceFetching ? 'Loading...' : 'BUY'}</p>
+                                                <p>{isChebuBuyPending || approvePending || isAllowanceFetching || isBuyAmountPending ? 'Loading...' : 'BUY'}</p>
                                             </button>
                                             <button
                                                 onClick={() => {
